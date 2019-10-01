@@ -48,6 +48,7 @@ namespace Shigobu.MIDI.DataLib
 		/// 前の結合イベント保持用
 		/// </summary>
 		public Event PrevCombinedEvent { get; set; }
+		public Event FirstCombinedEvent { get; private set; }
 		/// <summary>
 		/// 親(MIDITrackオブジェクト)
 		/// </summary>
@@ -354,14 +355,15 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// イベントを結合する
 		/// </summary>
-		public void Combine()
+		/// <returns>結合したイベントの数</returns>
+		public int Combine()
 		{
 			/* ノート化：ノートオン+ノートオフ */
 			/* 既に結合されてる場合は異常終了 */
 			if (this.IsCombined)
 			{
 				//例外を投げない
-				return;
+				return 0;
 			}
 			/* 次の(a)と(b)は同一ループ内では混用しないでください。 */
 			/* 次の(a)か(b)によっていったん結合したら、chopしない限りそれ以上は結合できません。 */
@@ -378,6 +380,7 @@ namespace Shigobu.MIDI.DataLib
 						{
 							this.NextCombinedEvent = noteOff;
 							noteOff.PrevCombinedEvent = this;
+							return 1;
 						}
 					}
 				}
@@ -395,11 +398,126 @@ namespace Shigobu.MIDI.DataLib
 						{
 							this.PrevCombinedEvent = noteOn;
 							noteOn.NextCombinedEvent = this;
+							return 1;
 						}
 					}
 				}
 			}
+			return 0;
 		}
+
+		/// <summary>
+		/// 結合イベントを切り離す
+		/// </summary>
+		/// <returns>切り離したイベントの数</returns>
+		public int Chop()
+		{
+			int lCount = 0;
+			Event tempEvent = null;
+			Event explodeEvent = null;
+			/* 結合イベントでない場合は異常終了 */
+			if (!this.IsCombined)
+			{
+				//例外を投げない。
+				return 0;
+			}
+			/* 最初の結合から順番に切り離す */
+			explodeEvent = this.FirstCombinedEvent;
+			while (explodeEvent != null)
+			{
+				tempEvent = explodeEvent.NextCombinedEvent;
+				explodeEvent.PrevCombinedEvent = null;
+				explodeEvent.NextCombinedEvent = null;
+				explodeEvent = tempEvent;
+				lCount++;
+			}
+			return lCount;
+		}
+
+		/// <summary>
+		/// MIDIイベントの削除(結合している場合でも単一のMIDIイベントを削除)
+		/// </summary>
+		public void DeleteSingle()
+		{
+			/* 結合イベントの切り離し */
+			if (this.NextCombinedEvent != null)
+			{
+				this.NextCombinedEvent.PrevCombinedEvent = this.PrevCombinedEvent;
+			}
+			if (this.PrevCombinedEvent != null)
+			{
+				this.PrevCombinedEvent.NextCombinedEvent = this.NextCombinedEvent;
+			}
+			/* 前後接続ポインタのつなぎ替え */
+			if (this.NextEvent != null)
+			{
+				this.NextEvent.PrevEvent = this.PrevEvent;
+			}
+			else if (this.Parent != null)
+			{
+				this.Parent.LastEvent = this.PrevEvent;
+			}
+			if (this.PrevEvent != null)
+			{
+				this.PrevEvent.NextEvent = this.NextEvent;
+			}
+			else if (this.Parent != null)
+			{
+				this.Parent.FirstEvent = this.NextEvent;
+			}
+			/* 前後同種イベント接続ポインタのつなぎ替え */
+			if (this.NextSameKindEvent != null)
+			{
+				this.NextSameKindEvent.PrevSameKindEvent = this.PrevSameKindEvent;
+			}
+			if (this.PrevSameKindEvent != null)
+			{
+				this.PrevSameKindEvent.NextSameKindEvent = this.NextSameKindEvent;
+			}
+			/* 前後結合イベントポインタのつなぎ替え */
+			if (this.NextCombinedEvent != null)
+			{
+				this.NextCombinedEvent.PrevCombinedEvent = this.PrevCombinedEvent;
+			}
+			if (this.PrevCombinedEvent != null)
+			{
+				this.PrevCombinedEvent.NextCombinedEvent = this.NextCombinedEvent;
+			}
+			/* このイベントの他のイベントへの参照をすべてnull化 */
+			this.NextEvent = null;
+			this.PrevEvent = null;
+			this.NextSameKindEvent = null;
+			this.PrevSameKindEvent = null;
+			this.NextCombinedEvent = null;
+			this.PrevCombinedEvent = null;
+			/* 親トラックのイベント数デクリメント */
+			if (this.Parent != null)
+			{
+				this.Parent.NumEvent--;
+			}
+			this.Parent = null;
+		}
+
+		/// <summary>
+		/// MIDIイベントの削除(結合している場合、結合しているMIDIイベントも削除)
+		/// </summary>
+		/// <returns>削除したイベントの数</returns>
+		public int Delete()
+		{
+			int count = 0;
+			Event deleteEvent = this;
+			Event tempEvent = null;
+			deleteEvent = this.FirstCombinedEvent;
+			while (deleteEvent != null)
+			{
+				tempEvent = deleteEvent.NextCombinedEvent;
+				deleteEvent.DeleteSingle();
+				deleteEvent = tempEvent;
+				count++;
+			}
+			return count;
+		}
+
 
 
 	}
