@@ -51,6 +51,6 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// 親(MIDITrackオブジェクト)
 		/// </summary>
-		public Event Parent { get; set; }
+		public Track Parent { get; set; }
 	}
 }
