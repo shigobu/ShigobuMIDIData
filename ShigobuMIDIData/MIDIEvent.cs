@@ -356,14 +356,14 @@ namespace Shigobu.MIDI.DataLib
 		/// イベントを結合する
 		/// </summary>
 		/// <returns>結合したイベントの数</returns>
-		public int Combine()
+		public void Combine()
 		{
 			/* ノート化：ノートオン+ノートオフ */
 			/* 既に結合されてる場合は異常終了 */
 			if (this.IsCombined)
 			{
 				//例外を投げない
-				return 0;
+				return;
 			}
 			/* 次の(a)と(b)は同一ループ内では混用しないでください。 */
 			/* 次の(a)か(b)によっていったん結合したら、chopしない限りそれ以上は結合できません。 */
@@ -380,7 +380,6 @@ namespace Shigobu.MIDI.DataLib
 						{
 							this.NextCombinedEvent = noteOff;
 							noteOff.PrevCombinedEvent = this;
-							return 1;
 						}
 					}
 				}
@@ -398,28 +397,25 @@ namespace Shigobu.MIDI.DataLib
 						{
 							this.PrevCombinedEvent = noteOn;
 							noteOn.NextCombinedEvent = this;
-							return 1;
 						}
 					}
 				}
 			}
-			return 0;
 		}
 
 		/// <summary>
 		/// 結合イベントを切り離す
 		/// </summary>
 		/// <returns>切り離したイベントの数</returns>
-		public int Chop()
+		public void Chop()
 		{
-			int lCount = 0;
 			Event tempEvent = null;
 			Event explodeEvent = null;
 			/* 結合イベントでない場合は異常終了 */
 			if (!this.IsCombined)
 			{
 				//例外を投げない。
-				return 0;
+				return;
 			}
 			/* 最初の結合から順番に切り離す */
 			explodeEvent = this.FirstCombinedEvent;
@@ -429,9 +425,7 @@ namespace Shigobu.MIDI.DataLib
 				explodeEvent.PrevCombinedEvent = null;
 				explodeEvent.NextCombinedEvent = null;
 				explodeEvent = tempEvent;
-				lCount++;
 			}
-			return lCount;
 		}
 
 		/// <summary>
@@ -502,9 +496,8 @@ namespace Shigobu.MIDI.DataLib
 		/// MIDIイベントの削除(結合している場合、結合しているMIDIイベントも削除)
 		/// </summary>
 		/// <returns>削除したイベントの数</returns>
-		public int Delete()
+		public void Delete()
 		{
-			int count = 0;
 			Event deleteEvent = this;
 			Event tempEvent = null;
 			deleteEvent = this.FirstCombinedEvent;
@@ -513,11 +506,34 @@ namespace Shigobu.MIDI.DataLib
 				tempEvent = deleteEvent.NextCombinedEvent;
 				deleteEvent.DeleteSingle();
 				deleteEvent = tempEvent;
-				count++;
 			}
-			return count;
 		}
 
+		/// <summary>
+		/// 指定イベントに結合しているイベントの削除
+		/// </summary>
+		/// <returns>削除したイベントの数</returns>
+		internal void DeleteCombinedEvent()
+		{
+			Event deleteEvent = null;
+			Event tempEvent = null;
+			/* このイベントより前の結合イベントを削除 */
+			deleteEvent = this.PrevCombinedEvent;
+			while (deleteEvent != null)
+			{
+				tempEvent = deleteEvent.PrevCombinedEvent;
+				deleteEvent.DeleteSingle();
+				deleteEvent = tempEvent;
+			}
+			/* このイベントより後の結合イベントを削除 */
+			deleteEvent = this.NextCombinedEvent;
+			while (deleteEvent != null)
+			{
+				tempEvent = deleteEvent.NextCombinedEvent;
+				deleteEvent.DeleteSingle();
+				deleteEvent = tempEvent;
+			}
+		}
 
 
 	}
