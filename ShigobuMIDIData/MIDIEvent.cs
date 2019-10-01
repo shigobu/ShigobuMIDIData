@@ -355,7 +355,6 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// イベントを結合する
 		/// </summary>
-		/// <returns>結合したイベントの数</returns>
 		public void Combine()
 		{
 			/* ノート化：ノートオン+ノートオフ */
@@ -406,7 +405,6 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// 結合イベントを切り離す
 		/// </summary>
-		/// <returns>切り離したイベントの数</returns>
 		public void Chop()
 		{
 			Event tempEvent = null;
@@ -495,7 +493,6 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// MIDIイベントの削除(結合している場合、結合しているMIDIイベントも削除)
 		/// </summary>
-		/// <returns>削除したイベントの数</returns>
 		public void Delete()
 		{
 			Event deleteEvent = this;
@@ -512,7 +509,6 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// 指定イベントに結合しているイベントの削除
 		/// </summary>
-		/// <returns>削除したイベントの数</returns>
 		internal void DeleteCombinedEvent()
 		{
 			Event deleteEvent = null;
