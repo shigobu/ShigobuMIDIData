@@ -62,6 +62,90 @@ namespace Shigobu.MIDI.DataLib
 		public int Key { get; private set; }
 		public int Channel { get; private set; }
 
+
+		/// <summary>
+		/// デフォルトコンストラクタ
+		/// </summary>
+		private Event() { }
+
+		/// <summary>
+		/// MIDIイベント(任意)を生成する。
+		/// </summary>
+		/// <param name="time">挿入時刻[tick]</param>
+		/// <param name="kind">イベントの種類</param>
+		/// <param name="data">初期データ</param>
+		public Event(int time, int kind, byte[] data)
+		{
+			/* 引数の正当性チェック */
+			if (time < 0)
+			{
+				throw new ArgumentOutOfRangeException(null, "時刻は、0以上である必要があります。");
+			}
+			if (kind < 0 || 256 <= kind)
+			{
+				throw new ArgumentOutOfRangeException(null, "種類は、0から255の範囲内である必要があります。");
+			}
+			/* MIDIチャンネルイベントは3バイト以下でなければならない */
+			if (0x80 <= kind && kind <= 0xEF && data.Length >= 4)
+			{
+				throw new ArgumentException("MIDIチャンネルイベントは3バイト以下である必要があります。");
+			}
+			if (data == null)
+			{
+				throw new ArgumentNullException(nameof(data));
+			}
+
+			Time = time;
+			Kind = kind;
+			int len = data.Length;
+			/* pDataにランニングステータスが含まれていない場合の措置 */
+			if (((0x80 <= kind && kind <= 0xEF) && (0 <= data[0] && data[0] <= 127)) ||
+				((kind == 0xF0) && (0 <= data[0] && data[0] <= 127)))
+			{
+				len++;
+			}
+
+			this.Data = new byte[len];
+
+			/* 接続ポインタの初期化 */
+			NextEvent = null;
+			PrevEvent = null;
+			NextSameKindEvent = null;
+			PrevSameKindEvent = null;
+			NextCombinedEvent = null;
+			PrevCombinedEvent = null;
+			Parent = null;
+
+			/* pDataにランニングステータスが含まれていない場合の措置 */
+			if ((0x80 <= kind && kind <= 0xEF && 0 <= data[0] && data[0] <= 127) ||
+				((kind == 0xF0) && 0 <= data[0] && data[0] <= 127))
+			{
+				if (this.Data != null)
+				{
+					this.Data[0] = (byte)kind;
+				}
+				if (this.Data != null && len - 1 > 0)
+				{
+					data.CopyTo(this.Data, 1);
+				}
+			}
+			/* 通常の場合 */
+			else
+			{
+				/* MIDIチャンネルイベントのイベントの種類のチャンネル情報は、データ部に合わせる */
+				if (0x80 <= this.Kind && this.Kind <= 0xEF)
+				{
+					this.Kind &= 0xF0;
+					this.Kind |= data[0] & 0x0F;
+				}
+				if (this.Data != null && len > 0)
+				{ 
+					data.CopyTo(this.Data, 0);
+				}
+			}
+		}
+
+
 		/// <summary>
 		/// 次の同じ種類のイベントを探索
 		/// </summary>
@@ -334,15 +418,10 @@ namespace Shigobu.MIDI.DataLib
 			Event newEvent = new Event();
 			newEvent.Time = this.Time;
 			newEvent.Kind = this.Kind;
-			if (this.Data.Length > 0)
-			{
-				newEvent.Data = new byte[this.Data.Length];
-				this.Data.CopyTo(newEvent.Data, 0);
-			}
-			else
-			{
-				newEvent.Data = null;
-			}
+
+			newEvent.Data = new byte[this.Data.Length];
+			this.Data.CopyTo(newEvent.Data, 0);
+
 			newEvent.Parent = null;
 			newEvent.NextEvent = null;
 			newEvent.PrevEvent = null;
@@ -530,6 +609,7 @@ namespace Shigobu.MIDI.DataLib
 				deleteEvent = tempEvent;
 			}
 		}
+
 
 
 	}
