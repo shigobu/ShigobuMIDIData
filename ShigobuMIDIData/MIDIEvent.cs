@@ -611,8 +611,11 @@ namespace Shigobu.MIDI.DataLib
 			}
 		}
 
-		/* クローンイベントの作成 */
-		/* pEventが結合イベントの場合、全く同じ結合イベントを作成する。 */
+		/// <summary>
+		/// クローンイベントの作成
+		/// </summary>
+		/// <returns>クローンサれたイベント</returns>
+		/// <remarks>結合イベントの場合、全く同じ結合イベントを作成する。</remarks>
 		public Event CreateClone()
 		{
 			int i = 0;
