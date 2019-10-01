@@ -431,6 +431,7 @@ namespace Shigobu.MIDI.DataLib
 			newEvent.PrevCombinedEvent = null;
 			return newEvent;
 		}
+
 		/// <summary>
 		/// イベントを結合する
 		/// </summary>
@@ -609,6 +610,57 @@ namespace Shigobu.MIDI.DataLib
 				deleteEvent = tempEvent;
 			}
 		}
+
+		/* クローンイベントの作成 */
+		/* pEventが結合イベントの場合、全く同じ結合イベントを作成する。 */
+		public Event CreateClone()
+		{
+			int i = 0;
+			int position = 0;
+			Event newEvent = null;
+			Event sourceEvent = null;
+			Event prevEvent = null;
+
+			/* 結合イベントの場合最初のイベントを取得 */
+			sourceEvent = this;
+			while (sourceEvent.PrevCombinedEvent != null)
+			{
+				sourceEvent = sourceEvent.PrevCombinedEvent;
+				position++;
+			}
+			/* 最初のイベントから順にひとつづつクローンを作成 */
+			while (sourceEvent != null)
+			{
+				newEvent = sourceEvent.CreateCloneSingle();
+				if (newEvent == null)
+				{
+					if (prevEvent != null)
+					{
+						Event deleteEvent = prevEvent.GetFirstCombinedEvent();
+						deleteEvent.Delete();
+					}
+					return null;
+				}
+				/* 結合イベントポインタの処理 */
+				if (prevEvent != null)
+				{
+					prevEvent.NextCombinedEvent = newEvent;
+				}
+				newEvent.PrevCombinedEvent = prevEvent;
+				newEvent.NextCombinedEvent = null;
+				/* 次のイベントへ進める */
+				sourceEvent = sourceEvent.NextCombinedEvent;
+				prevEvent = newEvent;
+			}
+			/* 戻り値は新しく作成した結合イベントのthisに対応するイベント(20081124変更) */
+			newEvent = newEvent.GetFirstCombinedEvent();
+			for (i = 0; i < position; i++)
+			{
+				newEvent = newEvent.NextCombinedEvent;
+			}
+			return newEvent;
+		}
+
 
 
 
