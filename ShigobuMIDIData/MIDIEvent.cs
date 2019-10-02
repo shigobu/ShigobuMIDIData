@@ -1283,6 +1283,83 @@ namespace Shigobu.MIDI.DataLib
 			return CreateKeySignature(time, keySignature.sf, (int)keySignature.mi);
 		}
 
+		/// <summary>
+		/// シーケンサ独自のイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="buf">値</param>
+		/// <returns>シーケンサ独自のイベント</returns>
+		static public Event CreateSequencerSpecific(int time, byte[] buf)
+		{
+			return new Event(time, Kinds.SequencerSpecific, buf);
+		}
+
+		/// <summary>
+		/// ノートオフイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="ch">チャンネル</param>
+		/// <param name="key">キーナンバー</param>
+		/// <param name="vel">ベロシティ</param>
+		/// <returns>ノートオフイベント</returns>
+		static public Event CreateNoteOff(int time, int ch, int key, int vel)
+		{
+			byte[] c = new byte[3];
+			c[0] = (byte)((int)Kinds.NoteOff | (ch & 0x0F));
+			c[1] = (byte)Clip(0, key, 127);
+			c[2] = (byte)Clip(0, vel, 127);
+			return new Event(time, (int)Kinds.NoteOff | (ch & 0x0F), c);
+		}
+
+		/// <summary>
+		/// ノートオンイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="ch">チャンネル</param>
+		/// <param name="key">キーナンバー</param>
+		/// <param name="vel">ベロシティ</param>
+		/// <returns>ノートオンイベント</returns>
+		static public Event CreateNoteOn(int time, int ch, int key, int vel)
+		{
+			byte[] c = new byte[3];
+			c[0] = (byte)((int)Kinds.NoteOn | (ch & 0x0F));
+			//!!Clipの範囲が間違っている??
+			//c[1] = (byte)(Clip(1, key, 127));
+			c[1] = (byte)Clip(0, key, 127);
+			c[2] = (byte)Clip(0, vel, 127);
+			return new Event(time, (int)Kinds.NoteOn | (ch & 0x0F), c);
+		}
+
+		/// <summary>
+		/// ノートオン(0x9n)・ノートオフ(0x8n)の2イベントを生成し、NoteOnを返す。
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="ch">チャンネル</param>
+		/// <param name="key">キーナンバー</param>
+		/// <param name="vel1">ノートオンイベントのベロシティ(打鍵速度)(1～127)</param>
+		/// <param name="vel2">ノートオフイベントのベロシティ(離鍵速度)(0～127)</param>
+		/// <param name="dur">長さ(1～)</param>
+		/// <returns>ノートイベント</returns>
+		static public Event CreateNoteOnNoteOff(int time, int ch, int key, int vel1, int vel2, int dur)
+		{
+			byte[] c = new byte[3];
+			Event noteOnEvent;
+			Event noteOffEvent;
+			/* ノートオン(0x9n)イベントの生成 */
+			noteOnEvent = CreateNoteOn(time, ch, key, Clip(1, vel1, 127));
+
+			/* ノートオフ(0x8n)イベントの生成 */
+			noteOffEvent = CreateNoteOff(time + dur, ch, key, vel2);
+
+			/* 上の2イベントの結合 */
+			noteOnEvent.PrevCombinedEvent = null;
+			noteOnEvent.NextCombinedEvent = noteOffEvent;
+			noteOffEvent.PrevCombinedEvent = noteOnEvent;
+			noteOffEvent.NextCombinedEvent = null;
+			return noteOnEvent;
+		}
+
+
 
 		/// <summary>
 		/// valをminとmaxの範囲内に収めます。
