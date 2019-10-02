@@ -6,6 +6,175 @@ using System.Threading.Tasks;
 
 namespace Shigobu.MIDI.DataLib
 {
+	/// <summary>
+	/// MIDIイベントの種類
+	/// </summary>
+	public enum Kinds
+	{
+		SequenceNumber = 0x00,
+		TextEvent = 0x01,
+		CopyrightNotice = 0x02,
+		TrackName = 0x03,
+		InstrumentName = 0x04,
+		Lyric = 0x05,
+		Marker = 0x06,
+		CuePoint = 0x07,
+		ProgramName = 0x08,
+		DeviceName = 0x09,
+		ChannelPrefix = 0x20,
+		PortPrefix = 0x21,
+		EndOfTrack = 0x2F,
+		Tempo = 0x51,
+		SmpteOffSet = 0x54,
+		TimeSignature = 0x58,
+		KeySignature = 0x59,
+		SequencerSpecific = 0x7F,
+		//以下、チャンネルイベント
+		NoteOff = 0x80,
+		NoteOff1,
+		NoteOff2,
+		NoteOff3,
+		NoteOff4,
+		NoteOff5,
+		NoteOff6,
+		NoteOff7,
+		NoteOff8,
+		NoteOff9,
+		NoteOff10,
+		NoteOff11,
+		NoteOff12,
+		NoteOff13,
+		NoteOff14,
+		NoteOff15,
+		NoteOn = 0x90,
+		NoteOn1,
+		NoteOn2,
+		NoteOn3,
+		NoteOn4,
+		NoteOn5,
+		NoteOn6,
+		NoteOn7,
+		NoteOn8,
+		NoteOn9,
+		NoteOn10,
+		NoteOn11,
+		NoteOn12,
+		NoteOn13,
+		NoteOn14,
+		NoteOn15,
+		KeyAfterTouch = 0xA0,
+		KeyAfterTouch1,
+		KeyAfterTouch2,
+		KeyAfterTouch3,
+		KeyAfterTouch4,
+		KeyAfterTouch5,
+		KeyAfterTouch6,
+		KeyAfterTouch7,
+		KeyAfterTouch8,
+		KeyAfterTouch9,
+		KeyAfterTouch10,
+		KeyAfterTouch11,
+		KeyAfterTouch12,
+		KeyAfterTouch13,
+		KeyAfterTouch14,
+		KeyAfterTouch15,
+		ControlChange = 0xB0,
+		ControlChange1,
+		ControlChange2,
+		ControlChange3,
+		ControlChange4,
+		ControlChange5,
+		ControlChange6,
+		ControlChange7,
+		ControlChange8,
+		ControlChange9,
+		ControlChange10,
+		ControlChange11,
+		ControlChange12,
+		ControlChange13,
+		ControlChange14,
+		ControlChange15,
+		ProgramChange = 0xC0,
+		ProgramChange1,
+		ProgramChange2,
+		ProgramChange3,
+		ProgramChange4,
+		ProgramChange5,
+		ProgramChange6,
+		ProgramChange7,
+		ProgramChange8,
+		ProgramChange9,
+		ProgramChange10,
+		ProgramChange11,
+		ProgramChange12,
+		ProgramChange13,
+		ProgramChange14,
+		ProgramChange15,
+		ChannelAfterTouch = 0xD0,
+		ChannelAfterTouch1,
+		ChannelAfterTouch2,
+		ChannelAfterTouch3,
+		ChannelAfterTouch4,
+		ChannelAfterTouch5,
+		ChannelAfterTouch6,
+		ChannelAfterTouch7,
+		ChannelAfterTouch8,
+		ChannelAfterTouch9,
+		ChannelAfterTouch10,
+		ChannelAfterTouch11,
+		ChannelAfterTouch12,
+		ChannelAfterTouch13,
+		ChannelAfterTouch14,
+		ChannelAfterTouch15,
+		PitchBend = 0xE0,
+		PitchBend1,
+		PitchBend2,
+		PitchBend3,
+		PitchBend4,
+		PitchBend5,
+		PitchBend6,
+		PitchBend7,
+		PitchBend8,
+		PitchBend9,
+		PitchBend10,
+		PitchBend11,
+		PitchBend12,
+		PitchBend13,
+		PitchBend14,
+		PitchBend15,
+		//チャンネルイベント終了
+		SysExStart = 0xF0,
+		SysExContinue = 0xF7
+	}
+
+	/// <summary>
+	/// 文字コードを表す列挙体
+	/// </summary>
+	public enum CharCodes
+	{
+		/// <summary>
+		/// 指定なし。
+		/// Windowsのコントロールパネルで指定されている文字コード(ANSI Code Page)でテキストエンコードするものとみなされる。
+		/// </summary>
+		NoCharCod = 0,
+		/// <summary>
+		/// {@LATIN} (ANSI)
+		/// </summary>
+		LATIN = 1252,
+		/// <summary>
+		/// {@JP} (Shift-JIS)
+		/// </summary>
+		JP = 932,
+		/// <summary>
+		/// UTF16リトルエンディアン
+		/// </summary>
+		UTF16LE = 1200,
+		/// <summary>
+		/// UTF16ビッグエンディアン
+		/// </summary>
+		UTF16BE = 1201
+	}
+
 	public class Event
 	{
 		/// <summary>
@@ -61,6 +230,8 @@ namespace Shigobu.MIDI.DataLib
 		public bool IsNoteOff { get; private set; }
 		public int Key { get; private set; }
 		public int Channel { get; private set; }
+		public CharCodes CharCode { get; private set; }
+		public string Text { get; private set; }
 
 
 		/// <summary>
@@ -73,7 +244,7 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		/// <param name="time">挿入時刻[tick]</param>
 		/// <param name="kind">イベントの種類</param>
-		/// <param name="data">初期データ</param>
+		/// <param name="data">初期データ(null禁止)</param>
 		public Event(int time, int kind, byte[] data)
 		{
 			/* 引数の正当性チェック */
@@ -85,14 +256,14 @@ namespace Shigobu.MIDI.DataLib
 			{
 				throw new ArgumentOutOfRangeException(null, "種類は、0から255の範囲内である必要があります。");
 			}
+			if (data == null)
+			{
+				throw new ArgumentNullException(nameof(data));
+			}
 			/* MIDIチャンネルイベントは3バイト以下でなければならない */
 			if (0x80 <= kind && kind <= 0xEF && data.Length >= 4)
 			{
 				throw new ArgumentException("MIDIチャンネルイベントは3バイト以下である必要があります。");
-			}
-			if (data == null)
-			{
-				throw new ArgumentNullException(nameof(data));
 			}
 
 			Time = time;
@@ -145,6 +316,13 @@ namespace Shigobu.MIDI.DataLib
 			}
 		}
 
+		/// <summary>
+		/// MIDIイベント(任意)を生成する。
+		/// </summary>
+		/// <param name="time">挿入時刻[tick]</param>
+		/// <param name="kind">イベントの種類</param>
+		/// <param name="data">初期データ</param>
+		public Event(int time, Kinds kind, byte[] data) : this(time, (int)kind, data) { }
 
 		/// <summary>
 		/// 次の同じ種類のイベントを探索
@@ -664,8 +842,99 @@ namespace Shigobu.MIDI.DataLib
 			return newEvent;
 		}
 
+		/// <summary>
+		/// シーケンスナンバーイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="number">シーケンスナンバー</param>
+		/// <returns>シーケンスナンバーイベント</returns>
+		static public Event CreateSequenceNumber(int time, int number)
+		{
+			number = Math.Min(Math.Max(0, number), 65535);
 
+			byte[] c = new byte[2];
+			c[0] = (byte)((number & 0xFF00) >> 8);
+			c[1] = (byte)(number & 0x00FF);
+			return new Event(time, Kinds.SequenceNumber, c);
+		}
 
+		/// <summary>
+		/// テキストベースのイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="kind">イベント種類</param>
+		/// <param name="text">テキスト</param>
+		/// <returns>テキストベースのイベント</returns>
+		static private Event CreateTextBasedEvent(int time, int kind, string text)
+		{
+			return Event.CreateTextBasedEvent(time, kind, CharCodes.NoCharCod, text);
+		}
+
+		/// <summary>
+		/// テキストベースのイベントの生成(文字コード指定)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="kind">イベント種類</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">テキスト</param>
+		/// <returns>テキストベースのイベント</returns>
+		static private Event CreateTextBasedEvent(int time, int kind, CharCodes charCode, string text)
+		{
+			if (kind <= 0x00 || kind >= 0x1F)
+			{
+				throw new MIDIDataLibException("指定のイベント種類は、テキストイベントではありません。");
+			}
+			Event CreateEvent = new Event(time, kind, new byte[0]);
+			CreateEvent.CharCode = charCode;
+			CreateEvent.Text =  text;
+			return CreateEvent;
+		}
+
+		/// <summary>
+		/// テキストイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">テキスト</param>
+		/// <returns>テキストイベント</returns>
+		static public Event  CreateTextEvent(int time, string text) 
+		{
+			return CreateTextBasedEvent(time, (int)Kinds.TextEvent, CharCodes.NoCharCod, text);
+		}
+
+		/// <summary>
+		/// テキストイベントの生成(文字コード指定あり)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">テキスト</param>
+		/// <returns>テキストイベント</returns>
+		static public Event CreateTextEvent(int time, CharCodes charCode, string text)
+		{
+			return CreateTextBasedEvent(time, (int) Kinds.TextEvent , charCode, text);
+		}
+
+		/// <summary>
+		/// 著作権イベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">著作権情報</param>
+		/// <returns>著作権イベント</returns>
+		static public Event CreateCopyrightNotice(int time, string text) 
+		{
+			return CreateTextBasedEvent(time, (int)Kinds.CopyrightNotice, CharCodes.NoCharCod, text);
+		}
+
+		/// <summary>
+		/// 著作権イベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">著作権情報</param>
+		/// <returns>著作権イベント</returns>
+		static public Event CreateCopyrightNotice(int time, CharCodes charCode, string text)
+		{
+			return CreateTextBasedEvent(time, (int)Kinds.CopyrightNotice, charCode, text);
+		}
 
 	}
 }
