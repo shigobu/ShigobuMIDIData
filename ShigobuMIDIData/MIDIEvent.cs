@@ -1208,10 +1208,10 @@ namespace Shigobu.MIDI.DataLib
 			int[] maxFrame = { 23, 24, 29, 29 };
 			byte[] c = new byte[5];
 			c[0] = (byte)((((int)mode & 0x03) << 5) | (Clip(0, hour, 23)));
-			c[1] = (byte)(Clip(0, min, 59));
-			c[2] = (byte)(Clip(0, sec, 59));
-			c[3] = (byte)(Clip(0, frame, maxFrame[(int)mode & 0x03]));
-			c[4] = (byte)(Clip(0, subFrame, 99));
+			c[1] = (byte)Clip(0, min, 59);
+			c[2] = (byte)Clip(0, sec, 59);
+			c[3] = (byte)Clip(0, frame, maxFrame[(int)mode & 0x03]);
+			c[4] = (byte)Clip(0, subFrame, 99);
 			return new Event(time, Kinds.SmpteOffSet, c);
 		}
 
@@ -1221,11 +1221,40 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="time">時刻</param>
 		/// <param name="offset">SMPTEOffsetオブジェクト</param>
 		/// <returns>SMPTEオフセットイベント</returns>
-		static private Event CreateSMPTEOffset(int time,SMPTEOffset offset)
+		static public Event CreateSMPTEOffset(int time,SMPTEOffset offset)
 		{
 			return CreateSMPTEOffset(time, offset.Mode, offset.Hour, offset.Min, offset.Sec, offset.Frame, offset.SubFrame);
 		}
 
+		/// <summary>
+		/// 拍子イベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="nn">拍子記号の分子</param>
+		/// <param name="dd">拍子記号の分母の指数部分</param>
+		/// <param name="cc">1拍あたりのMIDIクロック数</param>
+		/// <param name="bb">1拍の長さを32分音符の数で表す</param>
+		/// <returns>拍子イベント</returns>
+		static private Event CreateTimeSignature(int time, int nn, int dd, int cc, int bb)
+		{
+			byte[] c = new byte[4];
+			c[0] = (byte)Clip(0, nn, 255);
+			c[1] = (byte)Clip(0, dd, 255);
+			c[2] = (byte)Clip(0, cc, 255);
+			c[3] = (byte)Clip(0, bb, 255);
+			return new Event(time, Kinds.TimeSignature, c);
+		}
+
+		/// <summary>
+		/// 拍子イベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="timeSignature">拍子オブジェクト</param>
+		/// <returns>拍子イベント</returns>
+		static public Event CreateTimeSignature(int time,TimeSignature timeSignature)
+		{
+			return CreateTimeSignature(time, timeSignature.nn, timeSignature.dd, timeSignature.cc, timeSignature.bb);
+		}
 
 		/// <summary>
 		/// valをminとmaxの範囲内に収めます。
