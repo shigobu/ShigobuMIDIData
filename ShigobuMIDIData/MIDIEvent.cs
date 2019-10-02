@@ -859,18 +859,6 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
-		/// テキストベースのイベントの生成
-		/// </summary>
-		/// <param name="time">時刻</param>
-		/// <param name="kind">イベント種類</param>
-		/// <param name="text">テキスト</param>
-		/// <returns>テキストベースのイベント</returns>
-		static private Event CreateTextBasedEvent(int time, int kind, string text)
-		{
-			return Event.CreateTextBasedEvent(time, kind, CharCodes.NoCharCod, text);
-		}
-
-		/// <summary>
 		/// テキストベースのイベントの生成(文字コード指定)
 		/// </summary>
 		/// <param name="time">時刻</param>
@@ -891,14 +879,15 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
-		/// テキストイベントの生成
+		/// テキストベースのイベントの生成
 		/// </summary>
 		/// <param name="time">時刻</param>
+		/// <param name="kind">イベント種類</param>
 		/// <param name="text">テキスト</param>
-		/// <returns>テキストイベント</returns>
-		static public Event  CreateTextEvent(int time, string text) 
+		/// <returns>テキストベースのイベント</returns>
+		static private Event CreateTextBasedEvent(int time, int kind, string text)
 		{
-			return CreateTextEvent(time, CharCodes.NoCharCod, text);
+			return Event.CreateTextBasedEvent(time, kind, CharCodes.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -914,14 +903,14 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
-		/// 著作権イベントの生成
+		/// テキストイベントの生成
 		/// </summary>
 		/// <param name="time">時刻</param>
-		/// <param name="text">著作権情報</param>
-		/// <returns>著作権イベント</returns>
-		static public Event CreateCopyrightNotice(int time, string text) 
+		/// <param name="text">テキスト</param>
+		/// <returns>テキストイベント</returns>
+		static public Event  CreateTextEvent(int time, string text) 
 		{
-			return CreateCopyrightNotice(time, CharCodes.NoCharCod, text);
+			return CreateTextEvent(time, CharCodes.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -937,17 +926,16 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
-		/// トラック名イベントの生成
+		/// 著作権イベントの生成
 		/// </summary>
 		/// <param name="time">時刻</param>
-		/// <param name="text">トラック名</param>
-		/// <returns>トラック名イベント</returns>
-		static public Event CreateTrackName(int time, string text)
+		/// <param name="text">著作権情報</param>
+		/// <returns>著作権イベント</returns>
+		static public Event CreateCopyrightNotice(int time, string text) 
 		{
-			return CreateTrackName(time, CharCodes.NoCharCod, text);
+			return CreateCopyrightNotice(time, CharCodes.NoCharCod, text);
 		}
 
-		/* (文字コード指定あり)(UNICODE) */
 		/// <summary>
 		/// トラック名イベントの生成(文字コード指定あり)
 		/// </summary>
@@ -961,14 +949,14 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
-		/// インストゥルメントイベントの生成
+		/// トラック名イベントの生成
 		/// </summary>
 		/// <param name="time">時刻</param>
-		/// <param name="text">インストゥルメント名</param>
-		/// <returns>インストゥルメントイベント</returns>
-		static public Event CreateInstrumentName(int time, string text)
+		/// <param name="text">トラック名</param>
+		/// <returns>トラック名イベント</returns>
+		static public Event CreateTrackName(int time, string text)
 		{
-			return CreateInstrumentName(time, CharCodes.NoCharCod, text);
+			return CreateTrackName(time, CharCodes.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -981,6 +969,17 @@ namespace Shigobu.MIDI.DataLib
 		static public Event CreateInstrumentName(int time, CharCodes charCode, string text)
 		{
 			return CreateTextBasedEvent(time, (int)Kinds.InstrumentName, charCode, text);
+		}
+
+		/// <summary>
+		/// インストゥルメントイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">インストゥルメント名</param>
+		/// <returns>インストゥルメントイベント</returns>
+		static public Event CreateInstrumentName(int time, string text)
+		{
+			return CreateInstrumentName(time, CharCodes.NoCharCod, text);
 		}
 
 	}
