@@ -1256,6 +1256,34 @@ namespace Shigobu.MIDI.DataLib
 			return CreateTimeSignature(time, timeSignature.nn, timeSignature.dd, timeSignature.cc, timeSignature.bb);
 		}
 
+		/*  */
+		/// <summary>
+		/// 調性イベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="sf">#又は♭の数</param>
+		/// <param name="mi">長調か短調か</param>
+		/// <returns>調性イベント</returns>
+		static private Event CreateKeySignature(int time, int sf, int mi)
+		{
+			byte[] c = new byte[2];
+			c[0] = (byte)(Clip(-7, sf, +7));
+			c[1] = (byte)(Clip(0, mi, 1));
+			return new Event(time, Kinds.KeySignature, c);
+		}
+
+		/// <summary>
+		/// 調性イベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="keySignature">調性オブジェクト</param>
+		/// <returns>調性イベント</returns>
+		static public Event CreateKeySignature(int time, KeySignature keySignature)
+		{
+			return CreateKeySignature(time, keySignature.sf, (int)keySignature.mi);
+		}
+
+
 		/// <summary>
 		/// valをminとmaxの範囲内に収めます。
 		/// </summary>
