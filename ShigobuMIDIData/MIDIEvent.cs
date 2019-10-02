@@ -850,7 +850,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>シーケンスナンバーイベント</returns>
 		static public Event CreateSequenceNumber(int time, int number)
 		{
-			number = Math.Min(Math.Max(0, number), 65535);
+			number = Clip(0, number, 65535);
 
 			byte[] c = new byte[2];
 			c[0] = (byte)((number & 0xFF00) >> 8);
@@ -879,6 +879,19 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
+		/// テキストベースのイベントの生成(文字コード指定)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="kind">イベント種類</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">テキスト</param>
+		/// <returns>テキストベースのイベント</returns>
+		static private Event CreateTextBasedEvent(int time, Kinds kind, CharCodes charCode, string text)
+		{
+			return CreateTextBasedEvent(time, (int)kind, charCode, text);
+		}
+
+		/// <summary>
 		/// テキストベースのイベントの生成
 		/// </summary>
 		/// <param name="time">時刻</param>
@@ -899,7 +912,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>テキストイベント</returns>
 		static public Event CreateTextEvent(int time, CharCodes charCode, string text)
 		{
-			return CreateTextBasedEvent(time, (int)Kinds.TextEvent , charCode, text);
+			return CreateTextBasedEvent(time, Kinds.TextEvent , charCode, text);
 		}
 
 		/// <summary>
@@ -922,7 +935,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>著作権イベント</returns>
 		static public Event CreateCopyrightNotice(int time, CharCodes charCode, string text)
 		{
-			return CreateTextBasedEvent(time, (int)Kinds.CopyrightNotice, charCode, text);
+			return CreateTextBasedEvent(time, Kinds.CopyrightNotice, charCode, text);
 		}
 
 		/// <summary>
@@ -945,7 +958,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>トラック名イベント</returns>
 		static public　Event CreateTrackName(int time, CharCodes charCode, string text)
 		{
-			return CreateTextBasedEvent(time, (int)Kinds.TrackName, charCode, text);
+			return CreateTextBasedEvent(time, Kinds.TrackName, charCode, text);
 		}
 
 		/// <summary>
@@ -968,7 +981,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>インストゥルメントイベント</returns>
 		static public Event CreateInstrumentName(int time, CharCodes charCode, string text)
 		{
-			return CreateTextBasedEvent(time, (int)Kinds.InstrumentName, charCode, text);
+			return CreateTextBasedEvent(time, Kinds.InstrumentName, charCode, text);
 		}
 
 		/// <summary>
@@ -982,5 +995,139 @@ namespace Shigobu.MIDI.DataLib
 			return CreateInstrumentName(time, CharCodes.NoCharCod, text);
 		}
 
+		/// <summary>
+		/// 歌詞イベントの生成(文字コード指定あり)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">歌詞</param>
+		/// <returns>歌詞イベント</returns>
+		static public Event CreateLyric(int time, CharCodes charCode, string text)
+		{
+			return CreateTextBasedEvent(time, Kinds.Lyric, charCode, text);
+		}
+
+		/// <summary>
+		/// 歌詞イベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">歌詞</param>
+		/// <returns>歌詞イベント</returns>
+		static public Event CreateLyric(int time, string text)
+		{
+			return CreateLyric(time, CharCodes.NoCharCod, text);
+		}
+
+		/// <summary>
+		/// マーカーイベントの生成(文字コード指定あり)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">マーカー情報</param>
+		/// <returns>マーカーイベント</returns>
+		static public Event CreateMarker(int time, CharCodes charCode, string text)
+		{
+			return CreateTextBasedEvent(time, Kinds.Marker, charCode, text);
+		}
+
+		/// <summary>
+		/// マーカーイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">マーカー情報</param>
+		/// <returns>マーカーイベント</returns>
+		static public Event CreateMarker(int time, string text)
+		{
+			return CreateMarker(time, CharCodes.NoCharCod, text);
+		}
+
+		/// <summary>
+		/// キューポイントイベントの生成(文字コード指定あり)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">キューポイント情報</param>
+		/// <returns>キューポイントイベント</returns>
+		static public Event CreateCuePoint(int time, CharCodes charCode, string text)
+		{
+			return CreateTextBasedEvent(time, Kinds.CuePoint, charCode, text);
+		}
+
+		/// <summary>
+		/// キューポイントイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">キューポイント情報</param>
+		/// <returns>キューポイントイベント</returns>
+		static public Event CreateCuePoint(int time, string text)
+		{
+			return CreateCuePoint(time, CharCodes.NoCharCod, text);
+		}
+
+		/// <summary>
+		/// プログラム名イベントの生成(文字コード指定あり)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">プログラム名</param>
+		/// <returns>プログラム名イベント</returns>
+		static public Event CreateProgramName(int time, CharCodes charCode, string text)
+		{
+			return CreateTextBasedEvent(time, Kinds.ProgramName, charCode, text);
+		}
+
+		/// <summary>
+		/// プログラム名イベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">プログラム名</param>
+		/// <returns>プログラム名イベント</returns>
+		static public Event CreateProgramName(int time, string text)
+		{
+			return CreateProgramName(time, CharCodes.NoCharCod, text);
+		}
+
+		/// <summary>
+		/// デバイス名イベント生成(文字コード指定あり)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">デバイス名</param>
+		/// <returns>デバイス名イベント</returns>
+		static public Event CreateDeviceName(int time, CharCodes charCode, string text) 
+		{
+			return CreateTextBasedEvent(time, Kinds.DeviceName, charCode, text);
+		}
+
+		/// <summary>
+		/// デバイス名イベント生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">デバイス名</param>
+		/// <returns>デバイス名イベント</returns>
+		static public Event CreateDeviceName(int time, string text)
+		{
+			return CreateDeviceName(time, CharCodes.NoCharCod, text);
+		}
+
+		/* チャンネルプレフィックスの生成 */
+		static public Event CreateChannelPrefix(int lTime, int lCh)
+		{
+			byte[] c = new byte[1];
+			c[0] = (byte)Clip(0, lCh, 16);
+			return new Event(lTime, Kinds.ChannelPrefix, c);
+		}
+
+		/// <summary>
+		/// valをminとmaxの範囲内に収めます。
+		/// </summary>
+		/// <param name="min">下限</param>
+		/// <param name="val">値</param>
+		/// <param name="max">上限</param>
+		/// <returns>値</returns>
+		static private int Clip(int min, int val, int max)
+		{
+			return Math.Min(Math.Max(min, val), max);
+		}
 	}
 }
