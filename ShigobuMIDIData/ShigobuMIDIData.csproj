@@ -46,6 +46,7 @@
     <Compile Include="MIDIEvent.cs" />
     <Compile Include="MIDITrack.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="structs.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

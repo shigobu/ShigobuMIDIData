@@ -175,6 +175,33 @@ namespace Shigobu.MIDI.DataLib
 		UTF16BE = 1201
 	}
 
+	/// <summary>
+	/// SMPTEフレームモード
+	/// </summary>
+	public enum SMPTE
+	{
+		SMPTE24 = 0x00,
+		SMPTE25 = 0x01,
+		SMPTE30D = 0x02,
+		SMPTE30N = 0x03
+	}
+
+	/// <summary>
+	/// 長調か短調かを表します。
+	/// </summary>
+	public enum Keys
+	{
+		/// <summary>
+		/// 長調
+		/// </summary>
+		Major = 0,
+		/// <summary>
+		/// 短調
+		/// </summary>
+		Minor = 1
+	}
+
+
 	public class Event
 	{
 		private static int MaxTempo = 16777216;
@@ -1163,6 +1190,40 @@ namespace Shigobu.MIDI.DataLib
 			c[1] = (byte)((Clip(MinTempo, tempo, MaxTempo) & 0x00FF00) >> 8);
 			c[2] = (byte)((Clip(MinTempo, tempo, MaxTempo) & 0x0000FF) >> 0);
 			return new Event(time, Kinds.Tempo, c);
+		}
+
+		/// <summary>
+		/// SMPTEオフセットイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="mode">モード</param>
+		/// <param name="hour">時間(0～23)</param>
+		/// <param name="min">分(0～59)</param>
+		/// <param name="sec">秒(0～59)</param>
+		/// <param name="frame">フレーム(0～30※)</param>
+		/// <param name="subFrame">サブフレーム(0～99)</param>
+		/// <returns>SMPTEオフセットイベント</returns>
+		static private Event CreateSMPTEOffset(int time, SMPTE mode, int hour, int min, int sec, int frame, int subFrame)
+		{
+			int[] maxFrame = { 23, 24, 29, 29 };
+			byte[] c = new byte[5];
+			c[0] = (byte)((((int)mode & 0x03) << 5) | (Clip(0, hour, 23)));
+			c[1] = (byte)(Clip(0, min, 59));
+			c[2] = (byte)(Clip(0, sec, 59));
+			c[3] = (byte)(Clip(0, frame, maxFrame[(int)mode & 0x03]));
+			c[4] = (byte)(Clip(0, subFrame, 99));
+			return new Event(time, Kinds.SmpteOffSet, c);
+		}
+
+		/// <summary>
+		/// SMPTEオフセットイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="offset">SMPTEOffsetオブジェクト</param>
+		/// <returns>SMPTEオフセットイベント</returns>
+		static private Event CreateSMPTEOffset(int time,SMPTEOffset offset)
+		{
+			return CreateSMPTEOffset(time, offset.Mode, offset.Hour, offset.Min, offset.Sec, offset.Frame, offset.SubFrame);
 		}
 
 
