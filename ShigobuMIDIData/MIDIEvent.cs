@@ -1342,7 +1342,6 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>ノートイベント</returns>
 		static public Event CreateNoteOnNoteOff(int time, int ch, int key, int vel1, int vel2, int dur)
 		{
-			byte[] c = new byte[3];
 			Event noteOnEvent;
 			Event noteOffEvent;
 			/* ノートオン(0x9n)イベントの生成 */
@@ -1357,6 +1356,47 @@ namespace Shigobu.MIDI.DataLib
 			noteOffEvent.PrevCombinedEvent = noteOnEvent;
 			noteOffEvent.NextCombinedEvent = null;
 			return noteOnEvent;
+		}
+
+		/// <summary>
+		/// ノートオン(0x9n)・ノートオン(0x9n(vel==0))の2イベントを生成し、NoteOnを返す
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="ch">チャンネル</param>
+		/// <param name="key">キーナンバー</param>
+		/// <param name="vel">ノートオンイベントのベロシティ(打鍵速度)(1～127)</param>
+		/// <param name="dur">長さ(1～)</param>
+		/// <returns>ノートイベント</returns>
+		static public Event CreateNoteOnNoteOn0(int time, int ch, int key, int vel, int dur)
+		{
+			Event noteOnEvent;
+			Event noteOffEvent;
+			/* ノートオン(0x9n)イベントの生成 */
+			noteOnEvent = CreateNoteOn(time, ch, key, Clip(1, vel, 127));
+
+			/* ノートオン(0x9n, vel==0)イベントの生成 */
+			noteOffEvent = CreateNoteOn(time + dur, ch, key, 0);
+
+			/* 上の2イベントの結合 */
+			noteOnEvent.PrevCombinedEvent = null;
+			noteOnEvent.NextCombinedEvent = noteOffEvent;
+			noteOffEvent.PrevCombinedEvent = noteOnEvent;
+			noteOffEvent.NextCombinedEvent = null;
+			return noteOnEvent;
+		}
+
+		/// <summary>
+		/// ノートイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="ch">チャンネル</param>
+		/// <param name="key">キーナンバー</param>
+		/// <param name="vel">ノートオンイベントのベロシティ(打鍵速度)(1～127)</param>
+		/// <param name="dur">長さ(1～)</param>
+		/// <returns>ノートイベント</returns>
+		static public Event CreateNote(int time, int ch, int key, int vel, int dur)
+		{
+			return CreateNoteOnNoteOn0(time, ch, key, vel, dur);
 		}
 
 
