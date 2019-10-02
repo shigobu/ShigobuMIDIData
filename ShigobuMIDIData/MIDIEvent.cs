@@ -177,6 +177,9 @@ namespace Shigobu.MIDI.DataLib
 
 	public class Event
 	{
+		private static int MaxTempo = 16777216;
+		private static int MinTempo = 1;
+
 		/// <summary>
 		/// このイベントの一時的なインデックス(0から始まる)
 		/// </summary>
@@ -1110,13 +1113,58 @@ namespace Shigobu.MIDI.DataLib
 			return CreateDeviceName(time, CharCodes.NoCharCod, text);
 		}
 
-		/* チャンネルプレフィックスの生成 */
-		static public Event CreateChannelPrefix(int lTime, int lCh)
+		/*  */
+		/// <summary>
+		/// チャンネルプレフィックスの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="ch">チャンネル</param>
+		/// <returns>チャンネルプレフィックス</returns>
+		static public Event CreateChannelPrefix(int time, int ch)
 		{
 			byte[] c = new byte[1];
-			c[0] = (byte)Clip(0, lCh, 16);
-			return new Event(lTime, Kinds.ChannelPrefix, c);
+			c[0] = (byte)Clip(0, ch, 16);
+			return new Event(time, Kinds.ChannelPrefix, c);
 		}
+
+		/// <summary>
+		/// ポートプレフィックスの生成 
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="num">ポートプレフィックス</param>
+		/// <returns>ポートプレフィックス</returns>
+		static public Event CreatePortPrefix(int time, int num)
+		{
+			byte[] c = new byte[1];
+			c[0] = (byte)Clip(0, num, 255);
+			return new Event(time, Kinds.PortPrefix, c);
+		}
+
+		/// <summary>
+		/// エンドオブトラックイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <returns>エンドオブトラックイベント</returns>
+		static public Event CreateEndofTrack(int time)
+		{
+			return new Event(time, Kinds.EndOfTrack, new byte[0]);
+		}
+
+		/// <summary>
+		/// テンポイベントの生成(lTempo = 60000000/BPMとする)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="tempo">テンポ</param>
+		/// <returns>テンポイベント</returns>
+		static public Event CreateTempo(int time, int tempo)
+		{
+			byte[] c = new byte[3];
+			c[0] = (byte)((Clip(MinTempo, tempo, MaxTempo) & 0xFF0000) >> 16);
+			c[1] = (byte)((Clip(MinTempo, tempo, MaxTempo) & 0x00FF00) >> 8);
+			c[2] = (byte)((Clip(MinTempo, tempo, MaxTempo) & 0x0000FF) >> 0);
+			return new Event(time, Kinds.Tempo, c);
+		}
+
 
 		/// <summary>
 		/// valをminとmaxの範囲内に収めます。
@@ -1124,7 +1172,11 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="min">下限</param>
 		/// <param name="val">値</param>
 		/// <param name="max">上限</param>
-		/// <returns>値</returns>
+		/// <returns>
+		/// valがminより小さい場合、minが返ります。
+		/// valがmaxより大きい場合、maxが返ります。
+		/// それ以外は、valが返ります。
+		/// </returns>
 		static private int Clip(int min, int val, int max)
 		{
 			return Math.Min(Math.Max(min, val), max);
