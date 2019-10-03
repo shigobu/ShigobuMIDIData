@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Shigobu.MIDI.DataLib
 {
@@ -211,59 +207,122 @@ namespace Shigobu.MIDI.DataLib
 		/// このイベントの一時的なインデックス(0から始まる)
 		/// </summary>
 		internal int TempIndex { get; set; }
+
 		/// <summary>
 		/// 絶対時刻[Tick]又はSMPTEサブフレーム単位
 		/// </summary>
 		public int Time { get; set; }
+
 		/// <summary>
 		/// イベントの種類(0x00～0xFF)
 		/// </summary>
 		public int Kind { get; set; }
+
 		/// <summary>
 		/// イベントのデータ
 		/// </summary>
 		public byte[] Data { get; set; }
+
 		/// <summary>
 		/// 次のイベント(なければNULL)
 		/// </summary>
 		public Event NextEvent { get; set; }
+
 		/// <summary>
 		/// 前のイベント(なければNULL)
 		/// </summary>
 		public Event PrevEvent { get; set; }
+
 		/// <summary>
 		/// 次の同じ種類のイベント
 		/// </summary>
 		public Event NextSameKindEvent{ get; set; }
+
 		/// <summary>
 		/// 前の同じ種類のイベント
 		/// </summary>
 		public Event PrevSameKindEvent{ get; set; }
+
 		/// <summary>
 		/// 次の結合イベント保持用
 		/// </summary>
 		public Event NextCombinedEvent{ get; set; }
+
 		/// <summary>
 		/// 前の結合イベント保持用
 		/// </summary>
 		public Event PrevCombinedEvent { get; set; }
+
 		public Event FirstCombinedEvent { get; private set; }
+
 		/// <summary>
 		/// 親(MIDITrackオブジェクト)
 		/// </summary>
 		public Track Parent { get; set; }
+
 		public bool IsFloating { get; private set; }
+
 		public bool IsEndofTrack { get; private set; }
+
 		public bool IsMIDIEvent { get; private set; }
+
 		public bool IsCombined { get; private set; }
+
 		public bool IsNoteOn { get; private set; }
+
 		public bool IsNoteOff { get; private set; }
+
+		/// <summary>
+		/// メタイベントであるかどうかを調べる
+		/// </summary>
+		/// <remarks>
+		/// メタイベントとは、イベントの種類が0x00～0x7Fのもの、すなわち、
+		/// シーケンス番号・テキストイベント・著作権・トラック名・
+		/// インストゥルメント名・歌詞・マーカー・キューポイント・
+		/// プログラム名・デバイス名・チャンネルプリフィックス・ポートプリフィックス・
+		/// エンドオブトラック・テンポ・SMPTEオフセット・拍子記号・調性記号・シーケンサー独自のイベント
+		/// などを示す。これらは主に表記メモのためのイベントであり、演奏に影響を与えるものではない。
+		/// </remarks>
+		public bool IsMetaEvent
+		{
+			get
+			{
+				return Kind <= (int)Kinds.SequenceNumber && (int)Kinds.SequencerSpecific <= Kind;
+			}
+		}
+
+		/// <summary>
+		/// シーケンス番号であるかどうかを調べる
+		/// </summary>
+		public bool IsSequenceNumber
+		{
+			get
+			{
+				return Kind == (int)Kinds.SequenceNumber;
+			}
+		}
+
+		/// <summary>
+		/// テキストイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsTextEvent
+		{
+			get
+			{
+				return Kind == (int)Kinds.TextEvent;
+			}
+		}
+
 		public int Key { get; private set; }
+
 		public int Channel { get; private set; }
+
 		public CharCodes CharCode { get; private set; }
+
 		public string Text { get; private set; }
 
 
+		#region コンストラクタ
 		/// <summary>
 		/// デフォルトコンストラクタ
 		/// </summary>
@@ -353,6 +412,8 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="kind">イベントの種類</param>
 		/// <param name="data">初期データ</param>
 		public Event(int time, Kinds kind, byte[] data) : this(time, (int)kind, data) { }
+		#endregion
+
 
 		/// <summary>
 		/// 次の同じ種類のイベントを探索
@@ -1399,6 +1460,103 @@ namespace Shigobu.MIDI.DataLib
 			return CreateNoteOnNoteOn0(time, ch, key, vel, dur);
 		}
 
+		/// <summary>
+		/// キーアフターイベントの生成
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="ch">チャンネル番号</param>
+		/// <param name="key">キー値(0～127)</param>
+		/// <param name="val">値(0～127)</param>
+		/// <returns>キーアフタータッチイベント</returns>
+		static public Event CreateKeyAftertouch(int time, int ch, int key, int val)
+		{
+			byte[] c = new byte[3];
+			c[0] = (byte)((int)Kinds.KeyAfterTouch | (ch & 0x0F));
+			c[1] = (byte)(Clip(0, key, 127));
+			c[2] = (byte)(Clip(0, val, 127));
+			return new Event(time, (int)Kinds.KeyAfterTouch | c[0], c);
+		}
+
+		/// <summary>
+		/// コントロールチェンジイベントを生成する。
+		/// </summary>
+		/// <param name="time">絶対時刻</param>
+		/// <param name="ch">チャンネル番号</param>
+		/// <param name="num">コントロールナンバー(0～127)</param>
+		/// <param name="val">値(0～127)</param>
+		/// <returns>コントロールチェンジイベント</returns>
+		static public Event CreateControlChange(int time, int ch, int num, int val)
+		{
+			byte[] c = new byte[3];
+			c[0] = (byte)((int)Kinds.ControlChange | (ch & 0x0F));
+			c[1] = (byte)(Clip(0, num, 127));
+			c[2] = (byte)(Clip(0, val, 127));
+			return new Event(time, (int)Kinds.ControlChange | c[0], c);
+		}
+
+		/// <summary>
+		/// プログラムチェンジイベントを生成する。
+		/// </summary>
+		/// <param name="time">絶対時刻</param>
+		/// <param name="ch">チャンネル番号</param>
+		/// <param name="num">プログラムナンバー(0～127)</param>
+		/// <returns>プログラムチェンジイベント</returns>
+		Event CreateProgramChange(int time, int ch, int val)
+		{
+			byte[] c = new byte[2];
+			c[0] = (byte)((int)Kinds.ProgramChange | (ch & 0x0F));
+			c[1] = (byte)(Clip(0, val, 127));
+			return new Event(time, (int)Kinds.ProgramChange | c[0], c);
+		}
+
+		/// <summary>
+		/// チャンネルアフタータッチイベントを生成する。
+		/// </summary>
+		/// <param name="time">絶対時刻</param>
+		/// <param name="ch">チャンネル番号</param>
+		/// <param name="val">値(0～127)</param>
+		/// <returns>チャンネルアフタータッチイベント</returns>
+		Event CreateChannelAftertouch(int time, int ch, int val)
+		{
+			byte[] c = new byte[2];
+			c[0] = (byte)((int)Kinds.ChannelAfterTouch | (ch & 0x0F));
+			c[1] = (byte)(Clip(0, val, 127));
+			return new Event(time, (int)Kinds.ChannelAfterTouch | c[0], c);
+		}
+
+		/// <summary>
+		/// ピッチベンドイベントを生成する。
+		/// </summary>
+		/// <param name="time">絶対時刻</param>
+		/// <param name="ch">チャンネル番号</param>
+		/// <param name="val">値(0～16383)</param>
+		/// <returns>ピッチベンドイベント</returns>
+		Event CreatePitchBend(int time, int ch, int val)
+		{
+			byte[] c = new byte[3];
+			c[0] = (byte)((int)Kinds.PitchBend | (ch & 0x0F));
+			c[1] = (byte)(Clip(0, val, 16383) & 0x7F);
+			c[2] = (byte)((Clip(0, val, 16383) >> 7) & 0x7F);
+			return new Event(time, (int)Kinds.PitchBend | c[0], c);
+		}
+
+		/// <summary>
+		/// システムエクスクルーシブイベントを生成する。
+		/// </summary>
+		/// <param name="time">絶対時刻</param>
+		/// <param name="buf">データ部</param>
+		/// <returns>システムエクスクルーシブイベント</returns>
+		Event CreateSysExEvent(int time, byte[] buf)
+		{
+			if (buf[0] == 0xF0)
+			{
+				return new Event(time, Kinds.SysExStart, buf);
+			}
+			else
+			{
+				return new Event(time, Kinds.SysExContinue, buf);
+			}
+		}
 
 
 		/// <summary>
