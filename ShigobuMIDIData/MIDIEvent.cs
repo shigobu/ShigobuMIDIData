@@ -19,125 +19,20 @@ namespace Shigobu.MIDI.DataLib
 		DeviceName = 0x09,
 		ChannelPrefix = 0x20,
 		PortPrefix = 0x21,
-		EndOfTrack = 0x2F,
+		EndofTrack = 0x2F,
 		Tempo = 0x51,
-		SmpteOffSet = 0x54,
+		SMPTEOffset = 0x54,
 		TimeSignature = 0x58,
 		KeySignature = 0x59,
 		SequencerSpecific = 0x7F,
 		//以下、チャンネルイベント
 		NoteOff = 0x80,
-		NoteOff1,
-		NoteOff2,
-		NoteOff3,
-		NoteOff4,
-		NoteOff5,
-		NoteOff6,
-		NoteOff7,
-		NoteOff8,
-		NoteOff9,
-		NoteOff10,
-		NoteOff11,
-		NoteOff12,
-		NoteOff13,
-		NoteOff14,
-		NoteOff15,
 		NoteOn = 0x90,
-		NoteOn1,
-		NoteOn2,
-		NoteOn3,
-		NoteOn4,
-		NoteOn5,
-		NoteOn6,
-		NoteOn7,
-		NoteOn8,
-		NoteOn9,
-		NoteOn10,
-		NoteOn11,
-		NoteOn12,
-		NoteOn13,
-		NoteOn14,
-		NoteOn15,
 		KeyAfterTouch = 0xA0,
-		KeyAfterTouch1,
-		KeyAfterTouch2,
-		KeyAfterTouch3,
-		KeyAfterTouch4,
-		KeyAfterTouch5,
-		KeyAfterTouch6,
-		KeyAfterTouch7,
-		KeyAfterTouch8,
-		KeyAfterTouch9,
-		KeyAfterTouch10,
-		KeyAfterTouch11,
-		KeyAfterTouch12,
-		KeyAfterTouch13,
-		KeyAfterTouch14,
-		KeyAfterTouch15,
 		ControlChange = 0xB0,
-		ControlChange1,
-		ControlChange2,
-		ControlChange3,
-		ControlChange4,
-		ControlChange5,
-		ControlChange6,
-		ControlChange7,
-		ControlChange8,
-		ControlChange9,
-		ControlChange10,
-		ControlChange11,
-		ControlChange12,
-		ControlChange13,
-		ControlChange14,
-		ControlChange15,
 		ProgramChange = 0xC0,
-		ProgramChange1,
-		ProgramChange2,
-		ProgramChange3,
-		ProgramChange4,
-		ProgramChange5,
-		ProgramChange6,
-		ProgramChange7,
-		ProgramChange8,
-		ProgramChange9,
-		ProgramChange10,
-		ProgramChange11,
-		ProgramChange12,
-		ProgramChange13,
-		ProgramChange14,
-		ProgramChange15,
 		ChannelAfterTouch = 0xD0,
-		ChannelAfterTouch1,
-		ChannelAfterTouch2,
-		ChannelAfterTouch3,
-		ChannelAfterTouch4,
-		ChannelAfterTouch5,
-		ChannelAfterTouch6,
-		ChannelAfterTouch7,
-		ChannelAfterTouch8,
-		ChannelAfterTouch9,
-		ChannelAfterTouch10,
-		ChannelAfterTouch11,
-		ChannelAfterTouch12,
-		ChannelAfterTouch13,
-		ChannelAfterTouch14,
-		ChannelAfterTouch15,
 		PitchBend = 0xE0,
-		PitchBend1,
-		PitchBend2,
-		PitchBend3,
-		PitchBend4,
-		PitchBend5,
-		PitchBend6,
-		PitchBend7,
-		PitchBend8,
-		PitchBend9,
-		PitchBend10,
-		PitchBend11,
-		PitchBend12,
-		PitchBend13,
-		PitchBend14,
-		PitchBend15,
 		//チャンネルイベント終了
 		SysExStart = 0xF0,
 		SysExContinue = 0xF7
@@ -262,15 +157,7 @@ namespace Shigobu.MIDI.DataLib
 
 		public bool IsFloating { get; private set; }
 
-		public bool IsEndofTrack { get; private set; }
-
-		public bool IsMIDIEvent { get; private set; }
-
 		public bool IsCombined { get; private set; }
-
-		public bool IsNoteOn { get; private set; }
-
-		public bool IsNoteOff { get; private set; }
 
 		/// <summary>
 		/// メタイベントであるかどうかを調べる
@@ -313,6 +200,351 @@ namespace Shigobu.MIDI.DataLib
 			}
 		}
 
+		/// <summary>
+		/// 著作権イベントであるかどうかを調べる
+		/// </summary>
+		public bool IsCopyrightNotice
+		{
+			get
+			{
+				return Kind == (int)Kinds.CopyrightNotice;
+			}
+		}
+
+		/// <summary>
+		/// トラック名イベントであるかどうかを調べる
+		/// </summary>
+		public bool IsTrackName
+		{
+			get
+			{
+				return Kind == (int)Kinds.TrackName;
+			}
+		}
+
+		/// <summary>
+		/// インストゥルメント名であるかどうかを調べる
+		/// </summary>
+		public bool IsInstrumentName
+		{
+			get
+			{
+				return Kind == (int)Kinds.InstrumentName;
+			}
+		}
+
+		/// <summary>
+		/// 歌詞イベントであるかどうかを調べる
+		/// </summary>
+		public bool IsLyric
+		{
+			get
+			{
+				return Kind == (int)Kinds.Lyric;
+			}
+		}
+
+		/// <summary>
+		/// マーカーイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsMarker
+		{
+			get
+			{
+				return Kind == (int)Kinds.Marker;
+			}
+		}
+
+		/// <summary>
+		/// キューポイントイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsCuePoint
+		{
+			get
+			{
+				return Kind == (int)Kinds.CuePoint;
+			}
+		}
+
+		/// <summary>
+		/// プログラム名であるかどうかを調べる
+		/// </summary>
+		public bool IsProgramName
+		{
+			get
+			{
+				return Kind == (int)Kinds.ProgramName;
+			}
+		}
+
+		/// <summary>
+		/// デバイス名であるかどうかを調べる
+		/// </summary>
+		public bool IsDeviceName
+		{
+			get
+			{
+				return Kind == (int)Kinds.DeviceName;
+			}
+		}
+
+		/// <summary>
+		/// チャンネルプレフィックスであるかどうかを調べる
+		/// </summary>
+		public bool IsChannelPrefix
+		{
+			get
+			{
+				return Kind == (int)Kinds.ChannelPrefix;
+			}
+		}
+
+		/// <summary>
+		/// ポートプレフィックスであるかどうかを調べる
+		/// </summary>
+		public bool IsPortPrefix
+		{
+			get
+			{
+				return Kind == (int)Kinds.PortPrefix;
+			}
+		}
+
+		/// <summary>
+		/// エンドオブトラックであるかどうかを調べる
+		/// </summary>
+		public bool IsEndofTrack
+		{
+			get
+			{
+				return Kind == (int)Kinds.EndofTrack;
+			}
+		}
+
+		/// <summary>
+		/// テンポイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsTempo
+		{
+			get
+			{
+				return Kind == (int)Kinds.Tempo;
+			}
+		}
+
+		/// <summary>
+		/// SMPTEオフセットイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsSMPTEOffset
+		{
+			get
+			{
+				return Kind == (int)Kinds.SMPTEOffset;
+			}
+		}
+
+		/// <summary>
+		/// 拍子記号イベントであるかどうかを調べる
+		/// </summary>
+		public bool IsTimeSignature
+		{
+			get
+			{
+				return Kind == (int)Kinds.TimeSignature;
+			}
+		}
+
+		/// <summary>
+		/// 調性記号イベントであるかどうかを調べる
+		/// </summary>
+		public bool IsKeySignature
+		{
+			get
+			{
+				return Kind == (int)Kinds.KeySignature;
+			}
+		}
+
+		/// <summary>
+		/// シーケンサ独自のイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsSequencerSpecific
+		{
+			get
+			{
+				return Kind == (int)Kinds.SequencerSpecific;
+			}
+		}
+
+		/// <summary>
+		/// MIDIイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsMIDIEvent
+		{
+			get
+			{
+				return 0x80 <= Kind && Kind <= 0xEF;
+			}
+		}
+
+		/// <summary>
+		/// NOTEイベントであるかどうかを調べる。
+		/// これはノートオンとノートオフが結合イベントしたイベントでなければならない。
+		/// </summary>
+		public bool IsNote
+		{
+			get
+			{
+				if (!IsCombined)
+				{
+					return false;
+				}
+				Event noteOnEvent = FirstCombinedEvent;
+				if (noteOnEvent == null)
+				{
+					return false;
+				}
+				if (!noteOnEvent.IsNoteOn)
+				{
+					return false;
+				}
+				Event noteOffEvent = noteOnEvent.NextCombinedEvent;
+				if (noteOffEvent == null)
+				{
+					return false;
+				}
+				if (!noteOffEvent.IsNoteOff)
+				{
+					return false;
+				}
+				if (noteOffEvent.NextCombinedEvent != null)
+				{
+					return false;
+				}
+				return true;
+			}
+		}
+
+		/// <summary>
+		/// NOTEONOTEOFFイベントであるかどうかを調べる。
+		/// これはノートオン(0x9n)とノートオフ(0x8n)が結合イベントしたイベントでなければならない。
+		/// </summary>
+		public bool IsNoteOnNoteOff
+		{
+			get
+			{
+				if (!IsCombined)
+				{
+					return false;
+				}
+				Event noteOnEvent = FirstCombinedEvent;
+				if (noteOnEvent == null)
+				{
+					return false;
+				}
+				if (!noteOnEvent.IsNoteOn)
+				{
+					return false;
+				}
+				Event noteOffEvent = noteOnEvent.NextCombinedEvent;
+				if (noteOffEvent == null)
+				{
+					return false;
+				}
+				if (!(0x80 <= noteOffEvent.Kind && noteOffEvent.Kind <= 0x8F))
+				{
+					return false;
+				}
+				if (noteOffEvent.NextCombinedEvent != null)
+				{
+					return false;
+				}
+				return true;
+			}
+		}
+
+		/// <summary>
+		/// NOTEONNOTEON0イベントであるかどうかを調べる。
+		/// これはノートオン(0x9n)とノートオフ(0x9n,vel==0)が結合イベントしたイベントでなければならない。
+		/// </summary>
+		public bool IsNoteOnNoteOn0
+		{
+			get
+			{
+				if (!IsCombined)
+				{
+					return false;
+				}
+				Event noteOnEvent = FirstCombinedEvent;
+				if (noteOnEvent == null)
+				{
+					return false;
+				}
+				if (!noteOnEvent.IsNoteOn)
+				{
+					return false;
+				}
+				Event noteOffEvent = noteOnEvent.NextCombinedEvent;
+				if (noteOffEvent == null)
+				{
+					return false;
+				}
+				if (!(0x90 <= noteOffEvent.Kind && noteOffEvent.Kind <= 0x9F))
+				{
+					return false;
+				}
+				if (noteOffEvent.Data[2] != 0)
+				{
+					return false;
+				}
+				if (noteOffEvent.NextCombinedEvent != null)
+				{
+					return false;
+				}
+				return true;
+			}
+		}
+
+		public bool IsNoteOff
+		{
+			get
+			{
+				if (0x80 <= Kind && Kind <= 0x8F)
+				{
+					return true;
+				}
+				if (0x90 <= Kind && Kind <= 0x9F)
+				{
+					if (Data[2] > 0)
+					{
+						return false;
+					}
+					return true;
+				}
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// ノートオンイベントであるかどうかを調べる。
+		/// (ノートオンイベントでもベロシティ0のものはノートオフイベントとみなす。) 
+		/// </summary>
+		public bool IsNoteOn
+		{
+			get
+			{
+				if (0x90 <= Kind && Kind <= 0x9F)
+				{
+					if (Data[2] > 0)
+					{
+						return true;
+					}
+					return false;
+				}
+				return false;
+			}
+		}
+
 		public int Key { get; private set; }
 
 		public int Channel { get; private set; }
@@ -334,7 +566,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="time">挿入時刻[tick]</param>
 		/// <param name="kind">イベントの種類</param>
 		/// <param name="data">初期データ(null禁止)</param>
-		public Event(int time, int kind, byte[] data)
+		private Event(int time, int kind, byte[] data)
 		{
 			/* 引数の正当性チェック */
 			if (time < 0)
@@ -1235,7 +1467,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>エンドオブトラックイベント</returns>
 		static public Event CreateEndofTrack(int time)
 		{
-			return new Event(time, Kinds.EndOfTrack, new byte[0]);
+			return new Event(time, Kinds.EndofTrack, new byte[0]);
 		}
 
 		/// <summary>
@@ -1273,7 +1505,7 @@ namespace Shigobu.MIDI.DataLib
 			c[2] = (byte)Clip(0, sec, 59);
 			c[3] = (byte)Clip(0, frame, maxFrame[(int)mode & 0x03]);
 			c[4] = (byte)Clip(0, subFrame, 99);
-			return new Event(time, Kinds.SmpteOffSet, c);
+			return new Event(time, Kinds.SMPTEOffset, c);
 		}
 
 		/// <summary>
