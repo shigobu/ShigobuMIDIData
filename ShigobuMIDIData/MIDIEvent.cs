@@ -109,14 +109,26 @@ namespace Shigobu.MIDI.DataLib
 		public int Time { get; set; }
 
 		/// <summary>
-		/// イベントの種類(0x00～0xFF)
+		/// イベントの種類(チャンネルイベントの場合、チャンネル番号を含む)
+		/// （生データ）
 		/// </summary>
-		public int Kind { get; set; }
+		public int KindRaw { get; set; }
+
+		/// <summary>
+		/// イベントの種類
+		/// </summary>
+		public Kinds Kind
+		{
+			get
+			{				
+				return (Kinds)Enum.ToObject(typeof(Kinds), KindRaw & 0xF0);
+			}
+		}
 
 		/// <summary>
 		/// イベントのデータ
 		/// </summary>
-		public byte[] Data { get; set; }
+		public byte[] Data { get;　private set; }
 
 		/// <summary>
 		/// 次のイベント(なければNULL)
@@ -155,10 +167,6 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		public Track Parent { get; set; }
 
-		public bool IsFloating { get; private set; }
-
-		public bool IsCombined { get; private set; }
-
 		/// <summary>
 		/// メタイベントであるかどうかを調べる
 		/// </summary>
@@ -174,7 +182,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind <= (int)Kinds.SequenceNumber && (int)Kinds.SequencerSpecific <= Kind;
+				return KindRaw <= (int)Kinds.SequenceNumber && (int)Kinds.SequencerSpecific <= KindRaw;
 			}
 		}
 
@@ -185,7 +193,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.SequenceNumber;
+				return KindRaw == (int)Kinds.SequenceNumber;
 			}
 		}
 
@@ -196,7 +204,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.TextEvent;
+				return KindRaw == (int)Kinds.TextEvent;
 			}
 		}
 
@@ -207,7 +215,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.CopyrightNotice;
+				return KindRaw == (int)Kinds.CopyrightNotice;
 			}
 		}
 
@@ -218,7 +226,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.TrackName;
+				return KindRaw == (int)Kinds.TrackName;
 			}
 		}
 
@@ -229,7 +237,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.InstrumentName;
+				return KindRaw == (int)Kinds.InstrumentName;
 			}
 		}
 
@@ -240,7 +248,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.Lyric;
+				return KindRaw == (int)Kinds.Lyric;
 			}
 		}
 
@@ -251,7 +259,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.Marker;
+				return KindRaw == (int)Kinds.Marker;
 			}
 		}
 
@@ -262,7 +270,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.CuePoint;
+				return KindRaw == (int)Kinds.CuePoint;
 			}
 		}
 
@@ -273,7 +281,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.ProgramName;
+				return KindRaw == (int)Kinds.ProgramName;
 			}
 		}
 
@@ -284,7 +292,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.DeviceName;
+				return KindRaw == (int)Kinds.DeviceName;
 			}
 		}
 
@@ -295,7 +303,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.ChannelPrefix;
+				return KindRaw == (int)Kinds.ChannelPrefix;
 			}
 		}
 
@@ -306,7 +314,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.PortPrefix;
+				return KindRaw == (int)Kinds.PortPrefix;
 			}
 		}
 
@@ -317,7 +325,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.EndofTrack;
+				return KindRaw == (int)Kinds.EndofTrack;
 			}
 		}
 
@@ -328,7 +336,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.Tempo;
+				return KindRaw == (int)Kinds.Tempo;
 			}
 		}
 
@@ -339,7 +347,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.SMPTEOffset;
+				return KindRaw == (int)Kinds.SMPTEOffset;
 			}
 		}
 
@@ -350,7 +358,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.TimeSignature;
+				return KindRaw == (int)Kinds.TimeSignature;
 			}
 		}
 
@@ -361,7 +369,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.KeySignature;
+				return KindRaw == (int)Kinds.KeySignature;
 			}
 		}
 
@@ -372,7 +380,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return Kind == (int)Kinds.SequencerSpecific;
+				return KindRaw == (int)Kinds.SequencerSpecific;
 			}
 		}
 
@@ -383,7 +391,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return 0x80 <= Kind && Kind <= 0xEF;
+				return 0x80 <= KindRaw && KindRaw <= 0xEF;
 			}
 		}
 
@@ -451,7 +459,7 @@ namespace Shigobu.MIDI.DataLib
 				{
 					return false;
 				}
-				if (!(0x80 <= noteOffEvent.Kind && noteOffEvent.Kind <= 0x8F))
+				if (!(0x80 <= noteOffEvent.KindRaw && noteOffEvent.KindRaw <= 0x8F))
 				{
 					return false;
 				}
@@ -489,7 +497,7 @@ namespace Shigobu.MIDI.DataLib
 				{
 					return false;
 				}
-				if (!(0x90 <= noteOffEvent.Kind && noteOffEvent.Kind <= 0x9F))
+				if (!(0x90 <= noteOffEvent.KindRaw && noteOffEvent.KindRaw <= 0x9F))
 				{
 					return false;
 				}
@@ -509,11 +517,11 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				if (0x80 <= Kind && Kind <= 0x8F)
+				if (0x80 <= KindRaw && KindRaw <= 0x8F)
 				{
 					return true;
 				}
-				if (0x90 <= Kind && Kind <= 0x9F)
+				if (0x90 <= KindRaw && KindRaw <= 0x9F)
 				{
 					if (Data[2] > 0)
 					{
@@ -533,7 +541,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				if (0x90 <= Kind && Kind <= 0x9F)
+				if (0x90 <= KindRaw && KindRaw <= 0x9F)
 				{
 					if (Data[2] > 0)
 					{
@@ -542,6 +550,91 @@ namespace Shigobu.MIDI.DataLib
 					return false;
 				}
 				return false;
+			}
+		}
+
+		/// <summary>
+		/// キーアフタータッチイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsKeyAftertouch
+		{
+			get
+			{
+				return 0xA0 <= KindRaw && KindRaw <= 0xAF;
+			}
+		}
+
+		/// <summary>
+		/// コントロールチェンジイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsControlChange
+		{
+			get
+			{
+				return 0xB0 <= KindRaw && KindRaw <= 0xBF;
+			}
+		}
+
+		/// <summary>
+		/// プログラムチェンジイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsProgramChange
+		{
+			get
+			{
+				return 0xC0 <= KindRaw && KindRaw <= 0xCF;
+			}
+		}
+
+		/// <summary>
+		/// チャンネルアフターイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsChannelAftertouch
+		{
+			get
+			{
+				return 0xD0 <= KindRaw && KindRaw <= 0xDF;
+			}
+		}
+
+		/// <summary>
+		/// ピッチベンドイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsPitchBend
+		{
+			get
+			{
+				return 0xE0 <= KindRaw && KindRaw <= 0xEF;
+			}
+		}
+
+		/// <summary>
+		/// システムエクスクルーシヴイベントであるかどうかを調べる
+		/// </summary>
+		public bool IsSysExEvent
+		{
+			get
+			{
+				return KindRaw == 0xF0 || KindRaw == 0xF7;
+			}
+		}
+
+		public bool IsFloating
+		{
+			get
+			{
+				return Parent == null;
+			}
+		}
+
+		/// <summary>
+		/// 結合イベントであるかどうか調べる
+		/// </summary>
+		public bool IsCombined
+		{
+			get
+			{
+				return PrevCombinedEvent != null || NextCombinedEvent != null;
 			}
 		}
 
@@ -588,7 +681,7 @@ namespace Shigobu.MIDI.DataLib
 			}
 
 			Time = time;
-			Kind = kind;
+			KindRaw = kind;
 			int len = data.Length;
 			/* pDataにランニングステータスが含まれていない場合の措置 */
 			if (((0x80 <= kind && kind <= 0xEF) && (0 <= data[0] && data[0] <= 127)) ||
@@ -625,10 +718,10 @@ namespace Shigobu.MIDI.DataLib
 			else
 			{
 				/* MIDIチャンネルイベントのイベントの種類のチャンネル情報は、データ部に合わせる */
-				if (0x80 <= this.Kind && this.Kind <= 0xEF)
+				if (0x80 <= this.KindRaw && this.KindRaw <= 0xEF)
 				{
-					this.Kind &= 0xF0;
-					this.Kind |= data[0] & 0x0F;
+					this.KindRaw &= 0xF0;
+					this.KindRaw |= data[0] & 0x0F;
 				}
 				if (this.Data != null && len > 0)
 				{ 
@@ -656,7 +749,7 @@ namespace Shigobu.MIDI.DataLib
 			Event sameKindEvent = this.NextEvent;
 			while (sameKindEvent != null)
 			{
-				if (this.Kind == sameKindEvent.Kind)
+				if (this.KindRaw == sameKindEvent.KindRaw)
 				{
 					break;
 				}
@@ -674,7 +767,7 @@ namespace Shigobu.MIDI.DataLib
 			Event sameKindEvent = this.PrevEvent;
 			while (sameKindEvent != null)
 			{
-				if (this.Kind == sameKindEvent.Kind)
+				if (this.KindRaw == sameKindEvent.KindRaw)
 				{
 					break;
 				}
@@ -918,7 +1011,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			Event newEvent = new Event();
 			newEvent.Time = this.Time;
-			newEvent.Kind = this.Kind;
+			newEvent.KindRaw = this.KindRaw;
 
 			newEvent.Data = new byte[this.Data.Length];
 			this.Data.CopyTo(newEvent.Data, 0);
