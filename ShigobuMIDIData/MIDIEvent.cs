@@ -1826,7 +1826,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="ch">チャンネル番号</param>
 		/// <param name="num">プログラムナンバー(0～127)</param>
 		/// <returns>プログラムチェンジイベント</returns>
-		Event CreateProgramChange(int time, int ch, int val)
+		static public Event CreateProgramChange(int time, int ch, int val)
 		{
 			byte[] c = new byte[2];
 			c[0] = (byte)((int)Kinds.ProgramChange | (ch & 0x0F));
@@ -1841,7 +1841,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="ch">チャンネル番号</param>
 		/// <param name="val">値(0～127)</param>
 		/// <returns>チャンネルアフタータッチイベント</returns>
-		Event CreateChannelAftertouch(int time, int ch, int val)
+		static public Event CreateChannelAftertouch(int time, int ch, int val)
 		{
 			byte[] c = new byte[2];
 			c[0] = (byte)((int)Kinds.ChannelAfterTouch | (ch & 0x0F));
@@ -1856,7 +1856,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="ch">チャンネル番号</param>
 		/// <param name="val">値(0～16383)</param>
 		/// <returns>ピッチベンドイベント</returns>
-		Event CreatePitchBend(int time, int ch, int val)
+		static public Event CreatePitchBend(int time, int ch, int val)
 		{
 			byte[] c = new byte[3];
 			c[0] = (byte)((int)Kinds.PitchBend | (ch & 0x0F));
@@ -1871,7 +1871,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="time">絶対時刻</param>
 		/// <param name="buf">データ部</param>
 		/// <returns>システムエクスクルーシブイベント</returns>
-		Event CreateSysExEvent(int time, byte[] buf)
+		static public Event CreateSysExEvent(int time, byte[] buf)
 		{
 			if (buf[0] == 0xF0)
 			{
@@ -1881,6 +1881,28 @@ namespace Shigobu.MIDI.DataLib
 			{
 				return new Event(time, Kinds.SysExContinue, buf);
 			}
+		}
+
+		/* 文字列の文字コードを判別(UNICODE) */
+		CharCodes GetTextCharCode(string data) 
+		{
+			/* データ部に文字コード指定のある場合は、それを返す。 */
+			if (data != null) {
+				if (data.Length >= 11 && data.StartsWith("{@UTF-16LE}")) {
+					return CharCodes.UTF16LE;
+				}
+				if (data.Length >= 11 && data.StartsWith("{@UTF-16BE}")) {
+					return CharCodes.UTF16BE;
+				}
+				if (data.Length >= 8 && data.StartsWith("{@LATIN}")) {
+					return CharCodes.LATIN;
+				}
+				if (data.Length >= 5 && data.StartsWith("{@JP}")) {
+					return CharCodes.JP;
+				}
+			}
+			/* データ部に文字コード指定のない場合、MIDIEVENT_NOCHARCODEを返す。 */
+			return CharCodes.NoCharCod;
 		}
 
 
