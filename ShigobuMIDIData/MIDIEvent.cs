@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text;
+using System.Linq;
 
 namespace Shigobu.MIDI.DataLib
 {
@@ -63,7 +65,23 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// UTF16ビッグエンディアン
 		/// </summary>
-		UTF16BE = 1201
+		UTF16BE = 1201,
+		/// <summary>
+		/// ！！内部処理用、使用しないでください。
+		/// </summary>
+		NOCHARCODELATIN = 0x10000 | 1252,
+		/// <summary>
+		/// ！！内部処理用、使用しないでください。
+		/// </summary>
+		NOCHARCODEJP = 0x10000 | 932 ,
+		/// <summary>
+		/// ！！内部処理用、使用しないでください。
+		/// </summary>
+		NOCHARCODEUTF16LE = 0x10000 | 1200,
+		/// <summary>
+		/// ！！内部処理用、使用しないでください。
+		/// </summary>
+		NOCHARCODEUTF16BE = 0x10000 | 1201,
 	}
 
 	/// <summary>
@@ -642,7 +660,75 @@ namespace Shigobu.MIDI.DataLib
 
 		public int Channel { get; private set; }
 
-		public CharCodes CharCode { get; private set; }
+		/// <summary>
+		/// 文字コードを取得、設定します。
+		/// 設定時は、文字列のエンコードを含みます。
+		/// </summary>
+		public CharCodes CharCode
+		{
+			get
+			{
+				if (KindRaw <= 0x00 || KindRaw >= 0x1F)
+				{
+					return 0;
+				}
+				CharCodes charCode = GetCharCodeSingle();
+				/* データ部に文字コード指定のある場合は、それを返す。 */
+				if (charCode != CharCodes.NoCharCod)
+				{
+					return charCode;
+				}
+				/* データ部に文字コード指定のない場合、直近の同種のイベントの文字コードを探索する。 */
+				return FindCharCode();
+			}
+			set
+			{
+				CharCodes oldCharCode = CharCode;
+				//変更無しの場合は、何もしない。
+				if (oldCharCode == value)
+				{
+					return;
+				}
+				//文字を含むイベントで無い。
+				if (KindRaw <= 0x00 || KindRaw >= 0x1F)
+				{
+					return;
+				}
+
+				if (oldCharCode == CharCodes.NoCharCod && MIDIDataLib.DefaultCharCode != CharCodes.NoCharCod)
+				{
+					//デフォルト文字コードの取得
+					oldCharCode = (CharCodes)Enum.ToObject(typeof(CharCodes), (int)MIDIDataLib.DefaultCharCode | 0x10000);
+				}
+
+				string oldString;
+				switch (oldCharCode)
+				{
+					case CharCodes.NoCharCod:
+
+						break;
+					case CharCodes.LATIN:
+						break;
+					case CharCodes.JP:
+						break;
+					case CharCodes.UTF16LE:
+						break;
+					case CharCodes.UTF16BE:
+						break;
+					case CharCodes.NOCHARCODELATIN:
+						break;
+					case CharCodes.NOCHARCODEJP:
+						break;
+					case CharCodes.NOCHARCODEUTF16LE:
+						break;
+					case CharCodes.NOCHARCODEUTF16BE:
+						break;
+					default:
+						break;
+				}
+
+			}
+		}
 
 		public string Text { get; private set; }
 
@@ -1883,8 +1969,12 @@ namespace Shigobu.MIDI.DataLib
 			}
 		}
 
-		/* 文字列の文字コードを判別(UNICODE) */
-		CharCodes GetTextCharCode(string data) 
+		/// <summary>
+		/// 文字列の文字コードを判別
+		/// </summary>
+		/// <param name="data">文字列</param>
+		/// <returns>文字コード</returns>
+		private CharCodes GetTextCharCode(string data) 
 		{
 			/* データ部に文字コード指定のある場合は、それを返す。 */
 			if (data != null) {
@@ -1901,9 +1991,79 @@ namespace Shigobu.MIDI.DataLib
 					return CharCodes.JP;
 				}
 			}
-			/* データ部に文字コード指定のない場合、MIDIEVENT_NOCHARCODEを返す。 */
+			/* データ部に文字コード指定のない場合、CharCodes.NoCharCodを返す。 */
 			return CharCodes.NoCharCod;
 		}
+
+		/// <summary>
+		/// イベントの文字コードを取得
+		/// </summary>
+		/// <returns>文字コード</returns>
+		private CharCodes GetCharCodeSingle()
+		{
+			if (KindRaw <= 0x00 || KindRaw >= 0x1F)
+			{
+				return CharCodes.NoCharCod;
+			}
+			/* データ部に文字コード指定のある場合は、それを返す。 */
+			if (Data != null)
+			{
+				if (Data.Length >= 2 && Data[0] == 0xFF && Data[1] == 0xFE)
+				{
+					return CharCodes.UTF16LE;
+				}
+				if (Data.Length >= 2 && Data[0] == 0xFE && Data[1] == 0xFF)
+				{
+					return CharCodes.UTF16BE;
+				}
+				if (Data.Length >= 8 && Encoding.ASCII.GetString(Data.Take(8).ToArray()).StartsWith("{@LATIN}"))
+				{
+					return CharCodes.LATIN;
+				}
+				if (Data.Length >= 5 && Encoding.ASCII.GetString(Data.Take(5).ToArray()).StartsWith("{@JP}"))
+				{
+					return CharCodes.JP;
+				}
+			}
+			/* データ部に文字コード指定のない場合、CharCodes.NoCharCodを返す。 */
+			return CharCodes.NoCharCod;
+		}
+
+		/// <summary>
+		/// 直近の同種のイベントの文字コードを返す
+		/// </summary>
+		/// <returns>文字コード</returns>
+		private CharCodes FindCharCode()
+		{
+			if (KindRaw <= 0x00 || KindRaw >= 0x1F)
+			{
+				return CharCodes.NoCharCod;
+			}
+			Event prevEvent = PrevEvent;
+			while (prevEvent != null)
+			{
+				if (prevEvent.Kind == Kind)
+				{
+					CharCodes charCode = prevEvent.GetCharCodeSingle();
+					switch (charCode)
+					{
+						case CharCodes.LATIN:
+							return CharCodes.NOCHARCODELATIN;
+						case CharCodes.JP:
+							return CharCodes.NOCHARCODEJP;
+						case CharCodes.UTF16LE:
+							return CharCodes.NOCHARCODEUTF16LE;
+						case CharCodes.UTF16BE:
+							return CharCodes.NOCHARCODEUTF16BE;
+					}
+				}
+				prevEvent = prevEvent.PrevEvent;
+			}
+			return CharCodes.NoCharCod;
+		}
+
+
+
 
 
 		/// <summary>
