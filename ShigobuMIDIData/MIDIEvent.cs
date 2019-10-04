@@ -138,8 +138,16 @@ namespace Shigobu.MIDI.DataLib
 		public Kinds Kind
 		{
 			get
-			{				
-				return (Kinds)Enum.ToObject(typeof(Kinds), KindRaw & 0xF0);
+			{
+				if (IsMIDIEvent)
+				{
+					//MIDIイベントの場合、チャンネル情報を削除
+					return (Kinds)Enum.ToObject(typeof(Kinds), KindRaw & 0xF0);
+				}
+				else
+				{
+					return (Kinds)Enum.ToObject(typeof(Kinds), KindRaw);
+				}
 			}
 		}
 
