@@ -87,7 +87,7 @@ namespace Shigobu.MIDI.DataLib
 	/// <summary>
 	/// SMPTEフレームモード
 	/// </summary>
-	public enum SMPTE
+	public enum SMPTEMode
 	{
 		SMPTE24 = 0x00,
 		SMPTE25 = 0x01,
@@ -678,7 +678,7 @@ namespace Shigobu.MIDI.DataLib
 			{
 				if (KindRaw <= 0x00 || KindRaw >= 0x1F)
 				{
-					return 0;
+					return CharCodes.NoCharCod;
 				}
 				CharCodes charCode = GetCharCodeSingle();
 				/* データ部に文字コード指定のある場合は、それを返す。 */
@@ -692,8 +692,9 @@ namespace Shigobu.MIDI.DataLib
 			set
 			{
 				CharCodes oldCharCode = CharCode;
+				CharCodes newCharCode = value;
 				//変更無しの場合は、何もしない。
-				if (oldCharCode == value)
+				if (oldCharCode == newCharCode)
 				{
 					return;
 				}
@@ -710,36 +711,235 @@ namespace Shigobu.MIDI.DataLib
 				}
 
 				string oldString;
+				Encoding encoding;
+				//今までの文字コードで文字列作成
 				switch (oldCharCode)
 				{
 					case CharCodes.NoCharCod:
-
+						encoding = Encoding.Default;
+						oldString = encoding.GetString(Data);
 						break;
 					case CharCodes.LATIN:
+						encoding = Encoding.GetEncoding((int)oldCharCode);
+						oldString = encoding.GetString(Data.Skip(8).ToArray());
 						break;
 					case CharCodes.JP:
+						encoding = Encoding.GetEncoding((int)oldCharCode);
+						oldString = encoding.GetString(Data.Skip(5).ToArray());
 						break;
 					case CharCodes.UTF16LE:
+						encoding = Encoding.GetEncoding((int)oldCharCode);
+						oldString = encoding.GetString(Data.Skip(2).ToArray());
 						break;
 					case CharCodes.UTF16BE:
-						break;
-					case CharCodes.NOCHARCODELATIN:
-						break;
-					case CharCodes.NOCHARCODEJP:
-						break;
-					case CharCodes.NOCHARCODEUTF16LE:
-						break;
-					case CharCodes.NOCHARCODEUTF16BE:
+						encoding = Encoding.GetEncoding((int)oldCharCode);
+						oldString = encoding.GetString(Data.Skip(2).ToArray());
 						break;
 					default:
+						//Dataに文字コード識別子がないから、推測された文字コードですべてエンコードする。
+						encoding = Encoding.GetEncoding((int)oldCharCode & 0xFFFF);
+						oldString = encoding.GetString(Data);
+						break;
+				}
+
+				string newString;
+				byte[] temp;
+				//新しい文字コードでバイト配列設定
+				switch (newCharCode)
+				{
+					case CharCodes.LATIN:
+						newString = "{@LATIN}" + oldString;
+						Data = encoding.GetBytes(newString);
+						break;
+					case CharCodes.JP:
+						newString = "{@JP}" + oldString;
+						Data = encoding.GetBytes(newString);
+						break;
+					case CharCodes.UTF16LE:
+						temp = encoding.GetBytes(oldString);
+						Data = new byte[temp.Length + 2];
+						Data[0] = 0xFF;
+						Data[1] = 0xFE;
+						temp.CopyTo(Data, 2);						
+						break;
+					case CharCodes.UTF16BE:
+						temp = encoding.GetBytes(oldString);
+						Data = new byte[temp.Length + 2];
+						Data[0] = 0xFE;
+						Data[1] = 0xFF;
+						temp.CopyTo(Data, 2);
+						break;
+					default:
+						Data = encoding.GetBytes(oldString);
+						break;
+				}
+			}
+		}
+
+		/// <summary>
+		/// イベントの文字列を取得、設定します。
+		/// </summary>
+		public string Text
+		{
+			get
+			{
+				if (KindRaw <= 0x00 || KindRaw >= 0x1F)
+				{
+					return "";
+				}
+				CharCodes charCode = CharCode;
+				if (charCode == CharCodes.NoCharCod && MIDIDataLib.DefaultCharCode != CharCodes.NoCharCod)
+				{
+					//デフォルト文字コードの取得
+					charCode = (CharCodes)Enum.ToObject(typeof(CharCodes), (int)MIDIDataLib.DefaultCharCode | 0x10000);
+				}
+
+				string encString;
+				Encoding encoding;
+				//今までの文字コードで文字列作成
+				switch (charCode)
+				{
+					case CharCodes.NoCharCod:
+						encoding = Encoding.Default;
+						encString = encoding.GetString(Data);
+						break;
+					case CharCodes.LATIN:
+						encoding = Encoding.GetEncoding((int)charCode);
+						encString = encoding.GetString(Data);
+						break;
+					case CharCodes.JP:
+						encoding = Encoding.GetEncoding((int)charCode);
+						encString = encoding.GetString(Data);
+						break;
+					case CharCodes.UTF16LE:
+						encoding = Encoding.GetEncoding((int)charCode);
+						encString = encoding.GetString(Data.Skip(2).ToArray());
+						encString = "{@UTF16-LE}" + encString;
+						break;
+					case CharCodes.UTF16BE:
+						encoding = Encoding.GetEncoding((int)charCode);
+						encString = encoding.GetString(Data.Skip(2).ToArray());
+						encString = "{@UTF16-BE}" + encString;
+						break;
+					default:
+						//Dataに文字コード識別子がないから、推測された文字コードですべてエンコードする。
+						encoding = Encoding.GetEncoding((int)charCode & 0xFFFF);
+						encString = encoding.GetString(Data);
+						break;
+				}
+				return encString;
+			}
+			set
+			{
+				if (KindRaw <= 0x00 || KindRaw >= 0x1F)
+				{
+					throw new MIDIDataLibException("文字列を格納しているイベントではありません。文字列の設定はできません。");
+				}
+				string encString;
+				byte[] temp;
+				CharCodes charCode = GetTextCharCode(value);
+				Encoding encoding;
+				//バイト配列設定
+				switch (charCode)
+				{
+					case CharCodes.LATIN:
+						encoding = Encoding.GetEncoding((int)charCode);
+						encString = "{@LATIN}" + value;
+						Data = encoding.GetBytes(encString);
+						break;
+					case CharCodes.JP:
+						encoding = Encoding.GetEncoding((int)charCode);
+						encString = "{@JP}" + value;
+						Data = encoding.GetBytes(encString);
+						break;
+					case CharCodes.UTF16LE:
+						encoding = Encoding.GetEncoding((int)charCode);
+						temp = encoding.GetBytes(value);
+						Data = new byte[temp.Length + 2];
+						Data[0] = 0xFF;
+						Data[1] = 0xFE;
+						temp.CopyTo(Data, 2);
+						break;
+					case CharCodes.UTF16BE:
+						encoding = Encoding.GetEncoding((int)charCode);
+						temp = encoding.GetBytes(value);
+						Data = new byte[temp.Length + 2];
+						Data[0] = 0xFE;
+						Data[1] = 0xFF;
+						temp.CopyTo(Data, 2);
+						break;
+					default:
+						encoding = Encoding.Default;
+						Data = encoding.GetBytes(value);
 						break;
 				}
 
 			}
 		}
 
-		public string Text { get; private set; }
+		/// <summary>
+		/// SMPTEオフセットを取得、設定します。
+		/// </summary>
+		public SMPTEOffset SMPTEOffset
+		{
+			get
+			{
+				if (Kind != Kinds.SMPTEOffset)
+				{
+					return new SMPTEOffset();
+				}
 
+				SMPTEOffset sMPTEOffset = new SMPTEOffset();
+				sMPTEOffset.Mode = (SMPTEMode)Enum.ToObject(typeof(SMPTEMode), Data[0] >> 5);
+				sMPTEOffset.Hour = Data[0] & 0x1F;
+				sMPTEOffset.Min = Data[1];
+				sMPTEOffset.Sec = Data[2];
+				sMPTEOffset.Frame = Data[3];
+				sMPTEOffset.SubFrame =Data[4];
+				return sMPTEOffset;
+			}
+			set
+			{
+				if (Kind != Kinds.SMPTEOffset)
+				{
+					throw new MIDIDataLibException("SMPTEオフセットイベントではありません。SMPTEオフセットの設定はできません。");
+				}
+
+				int[] maxFrame = { 23, 24, 29, 29 };
+				Data = new byte[5];
+				Data[0] = (byte)((((int)value.Mode & 0x03) << 5) | (Clip(0, value.Hour, 23)));
+				Data[1] = (byte)Clip(0, value.Min, 59);
+				Data[2] = (byte)Clip(0, value.Sec, 59);
+				Data[3] = (byte)Clip(0, value.Frame, maxFrame[(int)value.Mode & 0x03]);
+				Data[4] = (byte)Clip(0, value.SubFrame, 99);
+			}
+		}
+
+		/// <summary>
+		/// テンポを取得、設定します。
+		/// </summary>
+		public int Tempo
+		{
+			get
+			{
+				if (Kind != Kinds.Tempo)
+				{
+					return 0;
+				}
+				return Data[0] << 16 | Data[1] << 8 | Data[2];
+			}
+			set
+			{
+				if (Kind != Kinds.Tempo)
+				{
+					throw new MIDIDataLibException("テンポイベントではありません。テンポの設定はできません。");
+				}
+				Data = new byte[3];
+				Data[0] = (byte)((Clip(MinTempo, value, MaxTempo) & 0xFF0000) >> 16);
+				Data[1] = (byte)((Clip(MinTempo, value, MaxTempo) & 0x00FF00) >> 8);
+				Data[2] = (byte)((Clip(MinTempo, value, MaxTempo) & 0x0000FF) >> 0);
+			}
+		}
 
 		#region コンストラクタ
 		/// <summary>
@@ -1683,7 +1883,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="frame">フレーム(0～30※)</param>
 		/// <param name="subFrame">サブフレーム(0～99)</param>
 		/// <returns>SMPTEオフセットイベント</returns>
-		static private Event CreateSMPTEOffset(int time, SMPTE mode, int hour, int min, int sec, int frame, int subFrame)
+		static private Event CreateSMPTEOffset(int time, SMPTEMode mode, int hour, int min, int sec, int frame, int subFrame)
 		{
 			int[] maxFrame = { 23, 24, 29, 29 };
 			byte[] c = new byte[5];

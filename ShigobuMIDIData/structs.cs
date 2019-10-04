@@ -141,7 +141,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="sec">秒(0～59)</param>
 		/// <param name="frame">フレーム(0～30※)</param>
 		/// <param name="subFrame">サブフレーム(0～99)</param>
-		public SMPTEOffset(SMPTE mode, int hour, int min, int sec, int frame, int subFrame)
+		public SMPTEOffset(SMPTEMode mode, int hour, int min, int sec, int frame, int subFrame)
 		{
 			Mode = mode;
 			Hour = hour;
@@ -151,7 +151,7 @@ namespace Shigobu.MIDI.DataLib
 			SubFrame = subFrame;
 		}
 
-		public SMPTE Mode { get; set; }
+		public SMPTEMode Mode { get; set; }
 		public int Hour { get; set; }
 		public int Min { get; set; }
 		public int Sec { get; set; }
