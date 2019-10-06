@@ -886,7 +886,7 @@ namespace Shigobu.MIDI.DataLib
 			{
 				if (Kind != Kinds.SMPTEOffset)
 				{
-					return new SMPTEOffset();
+					return null;
 				}
 
 				SMPTEOffset sMPTEOffset = new SMPTEOffset();
@@ -895,7 +895,7 @@ namespace Shigobu.MIDI.DataLib
 				sMPTEOffset.Min = Data[1];
 				sMPTEOffset.Sec = Data[2];
 				sMPTEOffset.Frame = Data[3];
-				sMPTEOffset.SubFrame =Data[4];
+				sMPTEOffset.SubFrame = Data[4];
 				return sMPTEOffset;
 			}
 			set
@@ -938,6 +938,37 @@ namespace Shigobu.MIDI.DataLib
 				Data[0] = (byte)((Clip(MinTempo, value, MaxTempo) & 0xFF0000) >> 16);
 				Data[1] = (byte)((Clip(MinTempo, value, MaxTempo) & 0x00FF00) >> 8);
 				Data[2] = (byte)((Clip(MinTempo, value, MaxTempo) & 0x0000FF) >> 0);
+			}
+		}
+
+		/// <summary>
+		/// 拍子の取得、設定します。
+		/// </summary>
+		public TimeSignature TimeSignature
+		{
+			get
+			{
+				if (Kind != Kinds.TimeSignature)
+				{
+					return null;
+				}
+				int nn = Data[0];
+				int dd = Data[1];
+				int cc = Data[2];
+				int bb = Data[3];
+				return new TimeSignature(nn, dd, cc, bb);
+			}
+			set
+			{
+				if (Kind != Kinds.TimeSignature)
+				{
+					throw new MIDIDataLibException("拍子イベントではありません。拍子の設定はできません。");
+				}
+				Data = new byte[4];
+				Data[0] = (byte)value.nn;
+				Data[1] = (byte)value.dd;
+				Data[2] = (byte)value.cc;
+				Data[3] = (byte)value.bb;
 			}
 		}
 
