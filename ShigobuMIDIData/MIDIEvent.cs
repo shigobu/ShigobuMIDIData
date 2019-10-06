@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Shigobu.MIDI.DataLib
 {
@@ -666,8 +667,6 @@ namespace Shigobu.MIDI.DataLib
 
 		public int Key { get; private set; }
 
-		public int Channel { get; private set; }
-
 		/// <summary>
 		/// 文字コードを取得、設定します。
 		/// 設定時は、文字列のエンコードを含みます。
@@ -969,6 +968,75 @@ namespace Shigobu.MIDI.DataLib
 				Data[1] = (byte)value.dd;
 				Data[2] = (byte)value.cc;
 				Data[3] = (byte)value.bb;
+			}
+		}
+
+		/// <summary>
+		/// 調性記号の取得、設定します。
+		/// </summary>
+		public KeySignature KeySignature
+		{
+			get
+			{
+				if (Kind != Kinds.KeySignature)
+				{
+					throw new MIDIDataLibException("調性記号イベントではありません。調性記号の取得はできません。");
+				}
+				int sf = Data[0];
+				Keys mi = (Keys)Enum.ToObject(typeof(Keys), Data[1]);
+				return new KeySignature(sf, mi);
+			}
+			set
+			{
+				if (Kind != Kinds.KeySignature)
+				{
+					throw new MIDIDataLibException("調性記号イベントではありません。調性記号の設定はできません。");
+				}
+				Data = new byte[2];
+				Data[0] = (byte)Clip(-7, value.sf, 7);
+				Data[1] = (byte)Clip(0, (int)value.mi, 1);
+			}
+		}
+
+		/// <summary>
+		/// MIDIメッセージの取得、設定をします。
+		/// </summary>
+		public byte[] MIDIMessage
+		{
+			get
+			{
+				if (IsMIDIEvent || IsSysExEvent)
+				{
+					return Data;
+				}
+				return null;
+			}
+			set
+			{
+				if (IsMIDIEvent || IsSysExEvent)
+				{
+					Data = value;
+				}
+			}
+		}
+
+		/// <summary>
+		/// チャンネルを取得します。
+		/// </summary>
+		public int Channel
+		{
+			get
+			{
+				if (IsMIDIEvent)
+				{
+					Debug.Assert(KindRaw == Data[0]);
+					return KindRaw & 0x0F;
+				}
+				return 0;
+			}
+			set
+			{
+
 			}
 		}
 
