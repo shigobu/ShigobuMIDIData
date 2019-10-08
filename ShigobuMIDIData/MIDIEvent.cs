@@ -123,9 +123,32 @@ namespace Shigobu.MIDI.DataLib
 		internal int TempIndex { get; set; }
 
 		/// <summary>
+		/// 絶対時刻[Tick]又はSMPTEサブフレーム単位（内部用）
+		/// </summary>
+		private int _time;
+		/// <summary>
 		/// 絶対時刻[Tick]又はSMPTEサブフレーム単位
 		/// </summary>
-		public int Time { get; set; }
+		public int Time
+		{
+			get
+			{
+				return _time;
+			}
+			set
+			{
+				int time = Clip(0, value, 0x7FFFFFFF);
+				int deltaTime = time - this._time;
+				Event pMoveEvent = FirstCombinedEvent;
+				while (pMoveEvent != null)
+				{
+					int targetTime = pMoveEvent._time + deltaTime;
+					targetTime = Clip(0, targetTime, 0x7FFFFFFF);
+					pMoveEvent.SetTimeSingle(targetTime);
+					pMoveEvent = pMoveEvent.NextCombinedEvent;
+				}
+			}
+		}
 
 		/// <summary>
 		/// イベントの種類(チャンネルイベントの場合、チャンネル番号を含む)
@@ -187,7 +210,31 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		public Event PrevCombinedEvent { get; set; }
 
-		public Event FirstCombinedEvent { get; private set; }
+		/// <summary>
+		/// 結合イベントの最初のイベントを返す。
+		/// </summary>
+		/// <returns>結合イベントの最初のイベント</returns>
+		/// <remarks>結合イベントでない場合、自分自身を返す。</remarks>
+		public Event FirstCombinedEvent
+		{
+			get
+			{
+				return GetFirstCombinedEvent();
+			}
+		}
+
+		/// <summary>
+		/// 結合イベントの最後のイベントを返す。
+		/// </summary>
+		/// <returns>結合イベントの最後のイベント</returns>
+		/// <remarks>結合イベントでない場合、自分自身を返す。</remarks>
+		public Event LastCombinedEvent
+		{
+			get
+			{
+				return GetLastCombinedEvent();
+			}
+		}
 
 		/// <summary>
 		/// 親(MIDITrackオブジェクト)
@@ -1013,6 +1060,7 @@ namespace Shigobu.MIDI.DataLib
 			}
 			set
 			{
+				Debug.Assert(IsMIDIEvent || IsSysExEvent);
 				if (IsMIDIEvent || IsSysExEvent)
 				{
 					Data = value;
@@ -1036,7 +1084,45 @@ namespace Shigobu.MIDI.DataLib
 			}
 			set
 			{
-
+				if (0x80 <= KindRaw && KindRaw <= 0xEF)
+				{
+					return;
+				}
+				Event tempEvent = FirstCombinedEvent;
+				while (tempEvent != null)
+				{
+					if (tempEvent.IsMIDIEvent)
+					{
+						tempEvent.KindRaw &= 0xF0;
+						tempEvent.KindRaw |= (byte)Clip(0, value, 15);
+						tempEvent.Data[0] &= 0xF0;
+						tempEvent.Data[0] |= (byte)Clip(0, value, 15);
+						Debug.Assert(tempEvent.KindRaw == tempEvent.Data[0]);
+						/* 前後の同種イベントのポインタのつなぎ替え */
+						if (tempEvent.PrevSameKindEvent != null)
+						{
+							tempEvent.PrevSameKindEvent.NextSameKindEvent =
+								tempEvent.PrevSameKindEvent.SearchNextSameKindEvent();
+						}
+						if (tempEvent.NextSameKindEvent != null)
+						{
+							tempEvent.NextSameKindEvent.PrevSameKindEvent =
+								tempEvent.NextSameKindEvent.SearchPrevSameKindEvent();
+						}
+						/* 前後の同種イベントポインタ設定 */
+						tempEvent.PrevSameKindEvent = tempEvent.SearchPrevSameKindEvent();
+						if (tempEvent.PrevSameKindEvent != null)
+						{
+							tempEvent.PrevSameKindEvent.NextSameKindEvent = tempEvent;
+						}
+						tempEvent.NextSameKindEvent = tempEvent.SearchNextSameKindEvent();
+						if (tempEvent.NextSameKindEvent != null)
+						{
+							tempEvent.NextSameKindEvent.PrevSameKindEvent = tempEvent;
+						}
+					}
+					tempEvent = tempEvent.NextCombinedEvent;
+				}
 			}
 		}
 
@@ -1174,7 +1260,7 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		/// <returns>結合イベントの最初のイベント</returns>
 		/// <remarks>結合イベントでない場合、自分自身を返す。</remarks>
-		public Event GetFirstCombinedEvent()
+		private Event GetFirstCombinedEvent()
 		{
 			Event tempEvent = this;
 			while (tempEvent.PrevCombinedEvent != null)
@@ -1189,7 +1275,7 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		/// <returns>結合イベントの最後のイベント</returns>
 		/// <remarks>結合イベントでない場合、自分自身を返す。</remarks>
-		public Event GetLastCombinedEvent()
+		private Event GetLastCombinedEvent()
 		{
 			Event tempEvent = this;
 			while (tempEvent.NextCombinedEvent != null)
@@ -1626,7 +1712,7 @@ namespace Shigobu.MIDI.DataLib
 				{
 					if (prevEvent != null)
 					{
-						Event deleteEvent = prevEvent.GetFirstCombinedEvent();
+						Event deleteEvent = prevEvent.FirstCombinedEvent;
 						deleteEvent.Delete();
 					}
 					return null;
@@ -1643,7 +1729,7 @@ namespace Shigobu.MIDI.DataLib
 				prevEvent = newEvent;
 			}
 			/* 戻り値は新しく作成した結合イベントのthisに対応するイベント(20081124変更) */
-			newEvent = newEvent.GetFirstCombinedEvent();
+			newEvent = newEvent.FirstCombinedEvent;
 			for (i = 0; i < position; i++)
 			{
 				newEvent = newEvent.NextCombinedEvent;
@@ -2369,7 +2455,312 @@ namespace Shigobu.MIDI.DataLib
 			return CharCodes.NoCharCod;
 		}
 
+		/// <summary>
+		/// 単体イベントの時刻設定
+		/// イベントがリストの要素の場合、ポインタをつなぎ変えて時刻順序を正しく保ちます。
+		/// </summary>
+		/// <param name="time">時刻</param>
+		public void SetTimeSingle(int time)
+		{
+			int currentTime = _time;
+			Track track = Parent;
 
+			/* 浮遊イベントの場合は単純に時刻設定 */
+			if (IsFloating)
+			{
+				_time = Clip(0, time, 0x7FFFFFFF);
+				return;
+			}
+
+			/* 以下は浮遊イベントでない場合の処理 */
+			/* EOTイベントを動かす場合の特殊処理 */
+			if (Kind == Kinds.EndofTrack && NextEvent == null)
+			{
+				/* EOTイベントの前に別のイベントがある場合 */
+				if (PrevEvent != null)
+				{
+					/* EOTイベントはそのイベントより前には移動しない。 */
+					if (PrevEvent._time > time)
+					{
+						_time = PrevEvent._time;
+					}
+					else
+					{
+						_time = time;
+					}
+				}
+				/* EOTイベントの前に別のイベントが無い場合 */
+				else
+				{
+					/* タイムスタンプ0より前には移動しない。 */
+					_time = Clip(0, time, 0x7FFFFFFF);
+				}
+				return;
+			}
+
+			/* エンドオブトラック以外のイベントの場合 */
+			/* 現在のタイムより後方へ動かす場合 */
+			if (time >= currentTime)
+			{
+				/* pTempEventの直前に挿入する。pTempEventがなければ最後に挿入する。 */
+				Event tempEvent = this;
+				Event lastEvent = null;
+				/* ノートオフイベントの場合 */
+				if (tempEvent.IsNoteOff)
+				{
+					Event pNoteOnEvent = tempEvent.PrevCombinedEvent;
+					/* 対応するノートオンイベントがある場合(20090713追加) */
+					if (pNoteOnEvent != null)
+					{
+						/* 音長さ=0以下の場合(20090713追加) */
+						/* 対応するノートオンイベントの直後に確定 */
+						if (time <= pNoteOnEvent._time)
+						{
+							time = pNoteOnEvent._time;
+							lastEvent = pNoteOnEvent;
+							/* 注:SetTimeSingleから呼ばれた場合とSetDurationから呼ばれた場合でNoteOn-NoteOff順序が異なる。 */
+							/* NoteOnを先に移動済みの場合(SetTimeSingle) */
+							if (pNoteOnEvent.NextEvent != this)
+							{
+								tempEvent = pNoteOnEvent.NextEvent;
+							}
+							/* NoteOnを移動していない場合(SetDuration) */
+							else
+							{
+								tempEvent = this.NextEvent; /* 20190101:pNoteOnEventをpEventに修正 */
+							}
+							if (tempEvent != null)
+							{
+								if (tempEvent.Kind == Kinds.EndofTrack &&
+									tempEvent.NextEvent == null)
+								{
+									tempEvent._time = time;
+								}
+							}
+						}
+						/* 音長さ=0以上の場合(20090713追加) */
+						else
+						{
+							while (tempEvent != null)
+							{
+								if (tempEvent._time > time ||
+									(tempEvent._time == time && !tempEvent.IsNoteOff))
+								{
+									break;
+								}
+								/* EOTよりも後に来る場合はEOTを後ろへ追い込む */
+								if (tempEvent.Kind == Kinds.EndofTrack &&
+									tempEvent.NextEvent == null)
+								{
+									tempEvent._time = time;
+									break;
+								}
+								lastEvent = tempEvent;
+								tempEvent = tempEvent.NextEvent;
+							}
+						}
+					}
+					/* 対応するノートオンイベントがない場合 */
+					else
+					{
+						while (tempEvent != null)
+						{
+							if (tempEvent._time > time ||
+								(tempEvent._time == time && !tempEvent.IsNoteOff))
+							{
+								break;
+							}
+							/* EOTよりも後に来る場合はEOTを後ろへ追い込む */
+							if (tempEvent.Kind == Kinds.EndofTrack &&
+								tempEvent.NextEvent == null)
+							{
+								tempEvent._time = time;
+								break;
+							}
+							lastEvent = tempEvent;
+							tempEvent = tempEvent.NextEvent;
+						}
+					}
+				}
+				/* その他の場合 */
+				else
+				{
+					while (tempEvent != null)
+					{
+						if (tempEvent._time > time)
+						{
+							break;
+						}
+						/* EOTよりも後に来る場合はEOTを後ろへ追い込む */
+						if (tempEvent.Kind == Kinds.EndofTrack &&
+							tempEvent.NextEvent == null)
+						{
+							tempEvent._time = time;
+							break;
+						}
+						lastEvent = tempEvent;
+						tempEvent = tempEvent.NextEvent;
+					}
+				}
+				/* pTempEventの直前にpEventを挿入する場合 */
+				if (tempEvent != null)
+				{
+					if (tempEvent != this &&
+						tempEvent.PrevEvent != this)
+					{ 
+						this.SetFloating();
+						this._time = time;
+						tempEvent.PrevEvent = this;
+					}
+					else
+					{
+						this._time = time;
+					}
+				}
+				/* リンクリストの最後にpEventを挿入する場合 */
+				else if (lastEvent != null)
+				{
+					if (lastEvent != this &&
+						lastEvent.NextEvent != this)
+					{ /* 20190407修正 */
+						this.SetFloating();
+						this._time = time;
+						lastEvent.NextEvent = this;
+					}
+					else
+					{
+						this._time = time;
+					}
+				}
+				/* 空のリストに挿入する場合 */
+				else if (track != null)
+				{
+					this._time = time;
+					this.Parent = track;
+					this.NextEvent = null;
+					this.PrevEvent = null;
+					this.NextSameKindEvent = null;
+					this.PrevSameKindEvent = null;
+					track.FirstEvent = this;
+					track.LastEvent = this;
+					track.NumEvent++;
+				}
+
+			}
+			/* 現在のタイムより前方へ動かす場合 */
+			else if (time < currentTime)
+			{
+				/* pTempEventの直後に挿入する。pTempEventがなければ最初に挿入する。 */
+				Event tempEvent = this;
+				Event firstEvent = null;
+				/* ノートオフイベントの場合 */
+				if (IsNoteOff)
+				{
+					Event pNoteOnEvent = tempEvent.PrevCombinedEvent;
+					/* 対応するノートオンイベントがある場合(20090713追加) */
+					if (pNoteOnEvent != null)
+					{
+						/* 音長さ=0以下の場合(20090713追加) */
+						/* 対応するノートオンイベントの直後に確定 */
+						if (time <= pNoteOnEvent._time)
+						{
+							time = pNoteOnEvent._time;
+							firstEvent = null;
+							tempEvent = pNoteOnEvent;
+						}
+						/* 音長さ=0以上の場合(20090713追加) */
+						else
+						{
+							while (tempEvent != null)
+							{
+								if (tempEvent._time < time ||
+									(tempEvent._time == time && tempEvent.IsNoteOff))
+								{
+									break;
+								}
+								/* 対応するノートオンイベントより前には行かない */
+								if (tempEvent == pNoteOnEvent)
+								{
+									break;
+								}
+								firstEvent = tempEvent;
+								tempEvent = tempEvent.PrevEvent;
+							}
+						}
+					}
+					/* 対応するノートオンイベントがない場合 */
+					else
+					{
+						while (tempEvent != null)
+						{
+							if (tempEvent._time < time ||
+								(tempEvent._time == time && tempEvent.IsNoteOff))
+							{
+								break;
+							}
+							firstEvent = tempEvent;
+							tempEvent = tempEvent.PrevEvent;
+						}
+					}
+				}
+				/* その他のイベントの場合 */
+				else
+				{
+					while (tempEvent != null)
+					{
+						if (tempEvent._time <= time)
+						{
+							break;
+						}
+						firstEvent = tempEvent;
+						tempEvent = tempEvent.PrevEvent;
+					}
+				}
+				/* pTempEventの直後にpEventを挿入する場合 */
+				if (tempEvent != null)
+				{
+					if (tempEvent != this &&
+						tempEvent.NextEvent != this)
+					{ /* 20080721修正 */
+						this.SetFloating();
+						this._time = time;
+						tempEvent.NextEvent = this;
+					}
+					else
+					{
+						this._time = time;
+					}
+				}
+				/* リンクリストの最初にpEventを挿入する場合 */
+				else if (firstEvent != null)
+				{
+					if (firstEvent != this &&
+						firstEvent.PrevEvent != this)
+					{ /* 20080721追加 */
+						this.SetFloating();
+						this._time = time;
+						firstEvent.PrevEvent = this;
+					}
+					else
+					{
+						this._time = time;
+					}
+				}
+				/* 空のリストに挿入する場合 */
+				else if (track != null)
+				{
+					this._time = time;
+					this.Parent = track;
+					this.NextEvent = null;
+					this.PrevEvent = null;
+					this.NextSameKindEvent = null;
+					this.PrevSameKindEvent = null;
+					track.FirstEvent = this;
+					track.LastEvent = this;
+					track.NumEvent++;
+				}
+			}
+		}
 
 
 
