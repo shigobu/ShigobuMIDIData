@@ -1159,7 +1159,7 @@ namespace Shigobu.MIDI.DataLib
 				throw new ArgumentException("MIDIチャンネルイベントは3バイト以下である必要があります。");
 			}
 
-			Time = time;
+			_time = time;
 			KindRaw = kind;
 			int len = data.Length;
 			/* pDataにランニングステータスが含まれていない場合の措置 */
@@ -1349,21 +1349,21 @@ namespace Shigobu.MIDI.DataLib
 			/* EOTイベントの前に挿入する場合、EOTイベントの時刻を補正する */
 			if (this.IsEndofTrack && this.NextEvent == null)
 			{
-				if (this.Time < insertEvent.Time)
+				if (this._time < insertEvent._time)
 				{ /* 20080622追加 */
-					this.Time = insertEvent.Time;
+					this._time = insertEvent._time;
 				}
 			}
 			/* 時刻の整合性がとれていない場合、自動的に挿入イベントの時刻を補正する */
-			if (insertEvent.Time > this.Time)
+			if (insertEvent._time > this._time)
 			{
-				insertEvent.Time = this.Time;
+				insertEvent._time = this._time;
 			}
 			if (this.PrevEvent != null)
 			{
-				if (insertEvent.Time < this.PrevEvent.Time)
+				if (insertEvent._time < this.PrevEvent._time)
 				{
-					insertEvent.Time = this.PrevEvent.Time;
+					insertEvent._time = this.PrevEvent._time;
 				}
 			}
 			/* 前後のイベントのポインタのつなぎかえ */
@@ -1429,15 +1429,15 @@ namespace Shigobu.MIDI.DataLib
 				throw new MIDIDataLibException("エンドオブトラックのあとに、イベントを挿入することはできません。");
 			}
 			/* 時刻の整合性がとれていない場合、自動的に挿入イベントの時刻を補正する */
-			if (insertEvent.Time < this.Time)
+			if (insertEvent._time < this._time)
 			{
-				insertEvent.Time = this.Time;
+				insertEvent._time = this._time;
 			}
 			if (this.NextEvent != null)
 			{
-				if (insertEvent.Time > this.NextEvent.Time)
+				if (insertEvent._time > this.NextEvent._time)
 				{
-					insertEvent.Time = this.NextEvent.Time;
+					insertEvent._time = this.NextEvent._time;
 				}
 			}
 			/* 前後のイベントのポインタのつなぎかえ */
@@ -1489,7 +1489,7 @@ namespace Shigobu.MIDI.DataLib
 		internal　Event CreateCloneSingle()
 		{
 			Event newEvent = new Event();
-			newEvent.Time = this.Time;
+			newEvent._time = this._time;
 			newEvent.KindRaw = this.KindRaw;
 
 			newEvent.Data = new byte[this.Data.Length];
