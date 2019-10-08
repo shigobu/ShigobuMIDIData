@@ -712,7 +712,32 @@ namespace Shigobu.MIDI.DataLib
 			}
 		}
 
-		public int Key { get; private set; }
+		/// <summary>
+		/// イベントのキーを取得、設定します。
+		/// </summary>
+		public int Key
+		{
+			get
+			{
+				if (0x80 <= KindRaw && KindRaw <= 0xAF)
+				{
+					return Data[1];
+				}
+				return 0;
+			}
+			set
+			{
+				Event pTempEvent = this.FirstCombinedEvent;
+				while (pTempEvent != null)
+				{
+					if (0x80 <= pTempEvent.KindRaw && pTempEvent.KindRaw <= 0xAF)
+					{
+						pTempEvent.Data[1] = (byte)Clip(0, value, 127);
+					}
+					pTempEvent = pTempEvent.NextCombinedEvent;
+				}
+			}
+		}
 
 		/// <summary>
 		/// 文字コードを取得、設定します。
