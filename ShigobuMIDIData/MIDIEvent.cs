@@ -727,14 +727,14 @@ namespace Shigobu.MIDI.DataLib
 			}
 			set
 			{
-				Event pTempEvent = this.FirstCombinedEvent;
-				while (pTempEvent != null)
+				Event tempEvent = this.FirstCombinedEvent;
+				while (tempEvent != null)
 				{
-					if (0x80 <= pTempEvent.KindRaw && pTempEvent.KindRaw <= 0xAF)
+					if (0x80 <= tempEvent.KindRaw && tempEvent.KindRaw <= 0xAF)
 					{
-						pTempEvent.Data[1] = (byte)Clip(0, value, 127);
+						tempEvent.Data[1] = (byte)Clip(0, value, 127);
 					}
-					pTempEvent = pTempEvent.NextCombinedEvent;
+					tempEvent = tempEvent.NextCombinedEvent;
 				}
 			}
 		}
