@@ -740,6 +740,35 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
+		/// イベントのベロシティを取得、設定します。
+		/// </summary>
+		public int Velocity
+		{
+			get
+			{
+				if (0x80 <= KindRaw && KindRaw <= 0x9F)
+				{
+					return Data[2];
+				}
+				return 0;
+			}
+			set
+			{
+				if (0x80 <= KindRaw && KindRaw <= 0x8F)
+				{
+					Data[2] = (byte)(Clip(0, value, 127));
+				}
+				else if (0x90 <= KindRaw && KindRaw <= 0x9F)
+				{
+					if (Data[2] >= 1)
+					{
+						Data[2] = (byte)(Clip(1, value, 127));
+					}
+				}
+			}
+		}
+
+		/// <summary>
 		/// 文字コードを取得、設定します。
 		/// 設定時は、文字列のエンコードを含みます。
 		/// </summary>
