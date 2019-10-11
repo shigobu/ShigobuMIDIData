@@ -756,14 +756,72 @@ namespace Shigobu.MIDI.DataLib
 			{
 				if (0x80 <= KindRaw && KindRaw <= 0x8F)
 				{
-					Data[2] = (byte)(Clip(0, value, 127));
+					Data[2] = (byte)Clip(0, value, 127);
 				}
 				else if (0x90 <= KindRaw && KindRaw <= 0x9F)
 				{
 					if (Data[2] >= 1)
 					{
-						Data[2] = (byte)(Clip(1, value, 127));
+						Data[2] = (byte)Clip(1, value, 127);
 					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// 結合イベントの音長さを取得、設定します。
+		/// </summary>
+		public int Duration
+		{
+			get
+			{
+				if (!IsNote)
+				{
+					return 0;
+				}
+				int duration = 0;
+				if (IsNoteOn)
+				{
+					Event noteOnEvent = this;
+					Event noteOffEvent = this.NextCombinedEvent;
+					duration = noteOffEvent.Time - noteOnEvent.Time;
+				}
+				else if (IsNoteOff)
+				{
+					Event noteOffEvent = this;
+					Event noteOnEvent = this.PrevCombinedEvent;
+					duration = noteOnEvent.Time - noteOffEvent.Time;
+				}
+				return duration;
+			}
+			set
+			{
+				if (!IsNote)
+				{
+					return;
+				}
+				if (IsNoteOn)
+				{
+					if (value < 0)
+					{
+						return;
+					}
+					Event noteOnEvent = this;
+					Event noteOffEvent = this.NextCombinedEvent;
+					int time = Clip(0, noteOnEvent.Time + value, 0x7FFFFFFF);
+					noteOffEvent.SetTimeSingle(time);
+				}
+				else if (IsNoteOff)
+				{
+					if (value > 0)
+					{
+						return;
+					}
+					Event noteOffEvent = this;
+					Event noteOnEvent = this.PrevCombinedEvent;
+					int time = Clip(0, noteOffEvent.Time + value, 0x7FFFFFFF);
+					/* TODO:lDuration==0のとき、NoteOnのほうが後に来てしまう。*/
+					noteOnEvent.SetTimeSingle(time);
 				}
 			}
 		}
