@@ -139,13 +139,13 @@ namespace Shigobu.MIDI.DataLib
 			{
 				int time = Clip(0, value, 0x7FFFFFFF);
 				int deltaTime = time - this._time;
-				Event pMoveEvent = FirstCombinedEvent;
-				while (pMoveEvent != null)
+				Event moveEvent = FirstCombinedEvent;
+				while (moveEvent != null)
 				{
-					int targetTime = pMoveEvent._time + deltaTime;
+					int targetTime = moveEvent._time + deltaTime;
 					targetTime = Clip(0, targetTime, 0x7FFFFFFF);
-					pMoveEvent.SetTimeSingle(targetTime);
-					pMoveEvent = pMoveEvent.NextCombinedEvent;
+					moveEvent.SetTimeSingle(targetTime);
+					moveEvent = moveEvent.NextCombinedEvent;
 				}
 			}
 		}
@@ -822,6 +822,139 @@ namespace Shigobu.MIDI.DataLib
 					int time = Clip(0, noteOffEvent.Time + value, 0x7FFFFFFF);
 					/* TODO:lDuration==0のとき、NoteOnのほうが後に来てしまう。*/
 					noteOnEvent.SetTimeSingle(time);
+				}
+			}
+		}
+
+		/// <summary>
+		/// イベントの番号を取得、設定します。
+		/// (シーケンス番号・チャンネルプリフィックス・ポートプリフィックス・コントロールチェンジ・プログラムチェンジ)
+		/// </summary>
+		public int Number
+		{
+			get
+			{
+				/* シーケンス番号の場合 */
+				if (IsSequenceNumber)
+				{
+					return ((Data[0]) << 8) + Data[1];
+				}
+				/* チャンネルプリフィックス、ポートプリフィックスの場合 */
+				else if (IsChannelPrefix || IsPortPrefix)
+				{
+					return Data[0];
+				}
+				/* コントロールチェンジの場合 */
+				else if (IsControlChange)
+				{
+					return Data[1];
+				}
+				/* プログラムチェンジ */
+				else if (IsProgramChange)
+				{
+					return Data[1];
+				}
+				return 0;
+			}
+			set
+			{
+				/* シーケンス番号の場合 */
+				if (IsSequenceNumber)
+				{
+					Data[0] = (byte)(Clip(0, value, 65535) >> 8);
+					Data[1] = (byte)(Clip(0, value, 65535) & 0xFF);
+				}
+				/* チャンネルプリフィックスの場合 */
+				else if (IsChannelPrefix)
+				{
+					Data[0] = (byte)Clip(0, value, 15);
+				}
+				/* ポートプリフィックスの場合 */
+				else if (IsPortPrefix)
+				{
+					Data[0] = (byte)Clip(0, value, 255);
+				}
+				/* コントロールチェンジの場合 */
+				else if (IsControlChange)
+				{
+					Data[1] = (byte)(Clip(0, value, 127));
+				}
+				/* プログラムチェンジの場合 */
+				else if (IsProgramChange)
+				{
+					Data[1] = (byte)(Clip(0, value, 127));
+				}
+			}
+		}
+
+		/// <summary>
+		/// イベントの値を取得、設定します。
+		/// (シーケンス番号・チャンネルプリフィックス・ポートプリフィックス・キーアフター・コントロールチェンジ・プログラムチェンジ・チャンネルアフター・ピッチベンド)
+		/// </summary>
+		public int Value
+		{
+			get
+			{
+				/* シーケンス番号の場合 */
+				if (IsSequenceNumber)
+				{
+					return (Data[0] << 8) + Data[1];
+				}
+				/* チャンネルプリフィックス・ポートプリフィックスの場合 */
+				else if (IsChannelPrefix || IsPortPrefix)
+				{
+					return Data[0];
+				}
+				/* キーアフタータッチ・コントロールチェンジの場合 */
+				else if (IsKeyAftertouch || IsControlChange)
+				{
+					return Data[2];
+				}
+				/* プログラムチェンジ・チャンネルアフタータッチの場合 */
+				else if (IsProgramChange || IsChannelAftertouch)
+				{
+					return Data[1];
+				}
+				/* ピッチベンドの場合 */
+				else if (IsPitchBend)
+				{
+					return Data[1] + (Data[2] << 7);
+				}
+				return 0;
+			}
+			set
+			{
+				/* シーケンス番号の場合 */
+				if (IsSequenceNumber)
+				{
+					Data[0] = (byte)(Clip(0, value, 65535) >> 8);
+					Data[1] = (byte)(Clip(0, value, 65535) & 0x00FF);
+				}
+				/* チャンネルプリフィックス */
+				else if (IsChannelPrefix)
+				{
+					Data[0] = (byte)(Clip(0, value, 15));
+				}
+				/* ポートプリフィックスの場合 */
+				else if (IsPortPrefix)
+				{
+					Data[0] = (byte)(Clip(0, value, 255));
+				}
+				/* キーアフタータッチ・コントロールチェンジの場合 */
+				else if (IsKeyAftertouch || IsControlChange)
+				{
+					Data[2] = (byte)(Clip(0, value, 127));
+				}
+				/* プログラムチェンジ・チャンネルアフタータッチの場合 */
+				else if (IsProgramChange || IsChannelAftertouch)
+				{
+					Data[1] = (byte)(Clip(0, value, 127));
+				}
+				/* ピッチベンドの場合 */
+				else if (IsPitchBend)
+				{
+					Data[1] = (byte)(Clip(0, value, 16383) & 0x007F);
+					Data[2] = (byte)(Clip(0, value, 16383) >> 7);
 				}
 			}
 		}
