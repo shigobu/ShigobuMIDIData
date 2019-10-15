@@ -3010,6 +3010,60 @@ namespace Shigobu.MIDI.DataLib
 				}
 			}
 		}
+
+		#region ToString関連
+
+		/* イベントの種類文字列表現表(メタイベント)(ANSI) */
+		private string[] g_szMetaKindNameA = new string[] {
+			"SequenceNumber", "TextEvent", "CopyrightNotice", "TrackName",
+			"InstrumentName", "Lyric", "Marker", "CuePoint",
+			"ProgramName", "DeviceName", "", "", "", "", "", "", /* 0x00 ～ 0x0F */
+			"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", /* 0x10 ～ 0x1F */
+			"ChannelPrefix", "PortPrefix", "", "", "", "", "", "",
+			"", "", "", "", "", "", "", "EndofTrack", /* 0x20 ～ 0x2F */
+			"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", /* 0x30 ～ 0x3F */
+			"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", /* 0x40 ～ 0x4F */
+			"", "Tempo", "", "", "SMPTEOffset", "", "", "",
+			"TimeSignature", "KeySignature", "", "", "", "", "", "", /* 0x50 ～ 0x5F */
+			"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", /* 0x60 ～ 0x6F */
+			"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "SequencerSpec", /* 0x70 ～ 0x7F */
+			"UnknownMetaEvent"};
+
+		/* イベントの種類文字列表現表(MIDIイベント)(ANSI) */
+		private string[] g_szMIDIKindNameA = new string[] {
+			"NoteOff", "NoteOn", "KeyAftertouch", "ControlChange",
+			"ProgramChange", "ChannelAftertouch", "PitchBend"};
+
+		/* イベントの種類文字列表現表(SYSEXイベント)(ANSI) */
+		string[] g_szSysExKindNameA = new string[] {"SysExStart", "", "", "", "", "", "", "SysExContinue"};
+
+		/* ノートキー文字列表現表(ANSI) */
+		string[] g_szKeyNameA = new string[]{"C_", "C#", "D_", "D#", "E_", "F_", "F#", "G_", "G#", "A_", "Bb", "B_"};
+
+		/// <summary>
+		/// イベントの内容を文字列で返します。
+		/// </summary>
+		/// <returns>イベントの文字列</returns>
+		public override string ToString()
+		{
+			throw new NotImplementedException();
+
+			string retVal;
+			//時刻の作成
+			Track track;
+			Data data;
+			if ((track = this.Parent) != null)
+			{
+				if ((data = track.Parent) != null)
+				{
+					
+				}
+			}
+
+			return retVal;
+		}
+
+		#endregion
 		#endregion
 
 
