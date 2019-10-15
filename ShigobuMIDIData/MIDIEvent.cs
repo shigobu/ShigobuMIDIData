@@ -117,6 +117,7 @@ namespace Shigobu.MIDI.DataLib
 		private static int MaxTempo = 16777216;
 		private static int MinTempo = 1;
 
+		#region プロパティ
 		/// <summary>
 		/// このイベントの一時的なインデックス(0から始まる)
 		/// </summary>
@@ -241,6 +242,7 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		public Track Parent { get; set; }
 
+		#region Is系プロパティ
 		/// <summary>
 		/// メタイベントであるかどうかを調べる
 		/// </summary>
@@ -711,6 +713,7 @@ namespace Shigobu.MIDI.DataLib
 				return PrevCombinedEvent != null || NextCombinedEvent != null;
 			}
 		}
+		#endregion
 
 		/// <summary>
 		/// イベントのキーを取得、設定します。
@@ -784,13 +787,13 @@ namespace Shigobu.MIDI.DataLib
 				{
 					Event noteOnEvent = this;
 					Event noteOffEvent = this.NextCombinedEvent;
-					duration = noteOffEvent.Time - noteOnEvent.Time;
+					duration = noteOffEvent._time - noteOnEvent._time;
 				}
 				else if (IsNoteOff)
 				{
 					Event noteOffEvent = this;
 					Event noteOnEvent = this.PrevCombinedEvent;
-					duration = noteOnEvent.Time - noteOffEvent.Time;
+					duration = noteOnEvent._time - noteOffEvent._time;
 				}
 				return duration;
 			}
@@ -808,7 +811,7 @@ namespace Shigobu.MIDI.DataLib
 					}
 					Event noteOnEvent = this;
 					Event noteOffEvent = this.NextCombinedEvent;
-					int time = Clip(0, noteOnEvent.Time + value, 0x7FFFFFFF);
+					int time = Clip(0, noteOnEvent._time + value, 0x7FFFFFFF);
 					noteOffEvent.SetTimeSingle(time);
 				}
 				else if (IsNoteOff)
@@ -819,7 +822,7 @@ namespace Shigobu.MIDI.DataLib
 					}
 					Event noteOffEvent = this;
 					Event noteOnEvent = this.PrevCombinedEvent;
-					int time = Clip(0, noteOffEvent.Time + value, 0x7FFFFFFF);
+					int time = Clip(0, noteOffEvent._time + value, 0x7FFFFFFF);
 					/* TODO:lDuration==0のとき、NoteOnのほうが後に来てしまう。*/
 					noteOnEvent.SetTimeSingle(time);
 				}
@@ -1370,6 +1373,7 @@ namespace Shigobu.MIDI.DataLib
 				}
 			}
 		}
+		#endregion
 
 		#region コンストラクタ
 		/// <summary>
@@ -1463,7 +1467,7 @@ namespace Shigobu.MIDI.DataLib
 		public Event(int time, Kinds kind, byte[] data) : this(time, (int)kind, data) { }
 		#endregion
 
-
+		#region メソッド
 		/// <summary>
 		/// 次の同じ種類のイベントを探索
 		/// </summary>
@@ -1982,6 +1986,7 @@ namespace Shigobu.MIDI.DataLib
 			return newEvent;
 		}
 
+		#region Create系性的メソッド
 		/// <summary>
 		/// シーケンスナンバーイベントの生成
 		/// </summary>
@@ -2250,7 +2255,6 @@ namespace Shigobu.MIDI.DataLib
 			return CreateDeviceName(time, CharCodes.NoCharCod, text);
 		}
 
-		/*  */
 		/// <summary>
 		/// チャンネルプレフィックスの生成
 		/// </summary>
@@ -2366,7 +2370,6 @@ namespace Shigobu.MIDI.DataLib
 			return CreateTimeSignature(time, timeSignature.nn, timeSignature.dd, timeSignature.cc, timeSignature.bb);
 		}
 
-		/*  */
 		/// <summary>
 		/// 調性イベントの生成
 		/// </summary>
@@ -2606,6 +2609,7 @@ namespace Shigobu.MIDI.DataLib
 				return new Event(time, Kinds.SysExContinue, buf);
 			}
 		}
+		#endregion
 
 		/// <summary>
 		/// 文字列の文字コードを判別
@@ -3006,7 +3010,7 @@ namespace Shigobu.MIDI.DataLib
 				}
 			}
 		}
-
+		#endregion
 
 
 		/// <summary>
