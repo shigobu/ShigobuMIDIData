@@ -1132,10 +1132,20 @@ namespace Shigobu.MIDI.DataLib
 				string encString;
 				byte[] temp;
 				CharCodes charCode = GetTextCharCode(value);
+				if (charCode == CharCodes.NoCharCod && MIDIDataLib.DefaultCharCode != CharCodes.NoCharCod)
+				{
+					//デフォルト文字コードの取得
+					charCode = (CharCodes)Enum.ToObject(typeof(CharCodes), (int)MIDIDataLib.DefaultCharCode | 0x10000);
+				}
+
 				Encoding encoding;
 				//バイト配列設定
 				switch (charCode)
 				{
+					case CharCodes.NoCharCod:
+						encoding = Encoding.Default;
+						Data = encoding.GetBytes(value);
+						break;
 					case CharCodes.LATIN:
 						encoding = Encoding.GetEncoding((int)charCode);
 						encString = "{@LATIN}" + value;
@@ -1163,11 +1173,11 @@ namespace Shigobu.MIDI.DataLib
 						temp.CopyTo(Data, 2);
 						break;
 					default:
-						encoding = Encoding.Default;
+						//valueから文字コードが特定できなかった場合で、デフォルト文字コードが指定してあった場合、デフォルト文字コードでエンコード
+						encoding = Encoding.GetEncoding((int)charCode & 0xFFFF);
 						Data = encoding.GetBytes(value);
 						break;
 				}
-
 			}
 		}
 
@@ -2620,16 +2630,20 @@ namespace Shigobu.MIDI.DataLib
 		{
 			/* データ部に文字コード指定のある場合は、それを返す。 */
 			if (data != null) {
-				if (data.Length >= 11 && data.StartsWith("{@UTF-16LE}")) {
+				if (data.Length >= 11 && data.StartsWith("{@UTF-16LE}"))
+				{
 					return CharCodes.UTF16LE;
 				}
-				if (data.Length >= 11 && data.StartsWith("{@UTF-16BE}")) {
+				if (data.Length >= 11 && data.StartsWith("{@UTF-16BE}"))
+				{
 					return CharCodes.UTF16BE;
 				}
-				if (data.Length >= 8 && data.StartsWith("{@LATIN}")) {
+				if (data.Length >= 8 && data.StartsWith("{@LATIN}"))
+				{
 					return CharCodes.LATIN;
 				}
-				if (data.Length >= 5 && data.StartsWith("{@JP}")) {
+				if (data.Length >= 5 && data.StartsWith("{@JP}"))
+				{
 					return CharCodes.JP;
 				}
 			}
