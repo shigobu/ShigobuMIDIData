@@ -50,12 +50,56 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				Event firstEvent = this.FirstEvent;
-				if (firstEvent != null)
+				if (FirstEvent != null)
 				{
-					return firstEvent.Time;
+					return FirstEvent.Time;
 				}
 				return 0;
+			}
+		}
+
+		/// <summary>
+		/// トラックの終了時刻(最後のイベントの時刻)[Tick]を取得
+		/// </summary>
+		public int EndTime
+		{
+			get
+			{
+				if (LastEvent != null)
+				{
+					return LastEvent.Time;
+				}
+				return 0;
+			}
+		}
+
+		/// <summary>
+		/// トラック名を取得、設定します。
+		/// </summary>
+		public string Name
+		{
+			get
+			{
+				foreach (Event @event in this)
+				{
+					if (@event.Kind == Kinds.TrackName)
+					{
+						return @event.Text;
+					}
+				}
+				return null;
+			}
+			set
+			{
+				foreach (Event @event in this)
+				{
+					if (@event.Kind == Kinds.TrackName)
+					{
+						@event.Text = value;
+						return;
+					}
+				}
+				InsertTrackName(0, value);
 			}
 		}
 
@@ -107,7 +151,62 @@ namespace Shigobu.MIDI.DataLib
 				@event.TempIndex = i;
 				i++;
 			}
-			return this.NumEvent = i;
+			return NumEvent = i;
+		}
+
+		/// <summary>
+		/// トラックの削除(トラック内に含まれるイベントオブジェクトも削除されます)
+		/// </summary>
+		public void Delete()
+		{
+			/* トラック内のイベント削除 */
+			Event @event = FirstEvent;
+			while (@event != null)
+			{
+				Event nextEvent = @event.NextEvent;
+				@event.DeleteSingle();
+				@event = nextEvent;
+			}
+			/* 双方向リストポインタのつなぎかえ */
+			if (NextTrack != null)
+			{
+				NextTrack.PrevTrack = PrevTrack;
+			}
+			else if (Parent != null)
+			{
+				Parent.LastTrack = PrevTrack;
+			}
+
+			if (PrevTrack != null)
+			{
+				PrevTrack.NextTrack = NextTrack;
+			}
+			else if (Parent != null)
+			{
+				Parent.FirstTrack = NextTrack;
+			}
+
+			if (Parent != null)
+			{
+				Parent.NumTrack--;
+				Parent = null;
+			}
+
+			FirstEvent = null;
+			LastEvent = null;
+			NextTrack = null;
+			PrevTrack = null;
+			Parent = null;
+		}
+
+		/// <summary>
+		/// トラックにトラック名イベントを生成して挿入
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="text">トラック名</param>
+		public void InsertTrackName(int time, string text)
+		{
+			throw new NotImplementedException();
 		}
 
 		#endregion
@@ -120,7 +219,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>イベント</returns>
 		public IEnumerator<Event> GetEnumerator()
 		{
-			for (Event @event = this.FirstEvent; @event != null; @event = @event.NextEvent)
+			for (Event @event = FirstEvent; @event != null; @event = @event.NextEvent)
 			{
 				yield return @event;
 			}
