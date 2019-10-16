@@ -8,6 +8,25 @@ namespace Shigobu.MIDI.DataLib
 {
 	public class Track
 	{
+		#region コンストラクタ
+
+		/// <summary>
+		/// 空のトラックを生成します。
+		/// </summary>
+		public Track()
+		{
+			NumEvent = 0;
+			FirstEvent = null;
+			LastEvent = null;
+			NextTrack = null;
+			PrevTrack = null;
+			Parent = null;
+		}
+
+		#endregion
+
+		#region プロパティ
+
 		/// <summary>
 		/// このトラックの一時的なインデックス(0から始まる)
 		/// </summary>
@@ -102,6 +121,8 @@ namespace Shigobu.MIDI.DataLib
 				InsertTrackName(0, value);
 			}
 		}
+
+		#endregion
 
 		#region メソッド
 
@@ -200,11 +221,43 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
+		/// MIDIトラックのクローンを生成
+		/// </summary>
+		/// <returns></returns>
+		public Track CreateClone()
+		{
+			Track　cloneTrack = new Track();
+			foreach (Event srcEvent in this)
+			{
+				if (srcEvent.PrevCombinedEvent == null)
+				{
+					Event cloneEvent = srcEvent.CreateClone();
+					if (cloneEvent == null)
+					{
+						cloneTrack.Delete();
+						return null;
+					}
+					cloneTrack.InsertEvent(cloneEvent);
+				}
+			}
+			return cloneTrack;
+		}
+
+		/// <summary>
 		/// トラックにトラック名イベントを生成して挿入
 		/// </summary>
 		/// <param name="time">時刻</param>
 		/// <param name="text">トラック名</param>
 		public void InsertTrackName(int time, string text)
+		{
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// トラックにイベントを挿入します。
+		/// </summary>
+		/// <param name="event"></param>
+		public void InsertEvent(Event @event)
 		{
 			throw new NotImplementedException();
 		}
