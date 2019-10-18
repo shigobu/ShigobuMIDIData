@@ -126,7 +126,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// 絶対時刻[Tick]又はSMPTEサブフレーム単位（内部用）
 		/// </summary>
-		private int _time;
+		internal int _time;
 		/// <summary>
 		/// 絶対時刻[Tick]又はSMPTEサブフレーム単位
 		/// </summary>
