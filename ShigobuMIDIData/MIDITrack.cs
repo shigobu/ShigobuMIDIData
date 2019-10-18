@@ -244,6 +244,40 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
+		/// トラックにノートオフイベントを正しく挿入
+		/// 結合しているノートオンイベントは既に挿入済みとする。
+		/// 同時刻にノートオフイベントがある場合はそれらの直前に挿入する
+		/// </summary>
+		/// <param name="pNoteOffEvent"></param>
+		public void InsertNoteOffEventBefore(Event pNoteOffEvent)
+		{
+			Event pOldEvent = null;
+			Event pTempEvent = null;
+			Event pNoteOnEvent = pNoteOffEvent.PrevCombinedEvent;
+			if (pNoteOnEvent.IsFloating)
+			{
+				return;
+			}
+			pOldEvent = pNoteOnEvent;
+			pTempEvent = pNoteOnEvent.NextEvent;
+			while (pTempEvent != null)
+			{
+				if (pTempEvent.Kind == Kinds.EndofTrack && pTempEvent.NextEvent == null)
+				{
+					pTempEvent._time = pNoteOffEvent._time;
+					break;
+				}
+				else if (pTempEvent._time >= pNoteOffEvent._time)
+				{
+					break;
+				}
+				pOldEvent = pTempEvent;
+				pTempEvent = pTempEvent.NextEvent;
+			}
+			pOldEvent.SetNextEvent(pNoteOffEvent);
+		}
+
+		/// <summary>
 		/// トラックにトラック名イベントを生成して挿入
 		/// </summary>
 		/// <param name="time">時刻</param>
