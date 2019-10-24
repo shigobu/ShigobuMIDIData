@@ -439,6 +439,117 @@ namespace Shigobu.MIDI.DataLib
 			}
 		}
 
+		/// <summary>
+		/// トラックにイベントを挿入(イベントはあらかじめ生成しておく) 
+		/// pEventをpTargetの直後に入れる。時刻が不正な場合、自動訂正する。
+		/// pTarget==NULLの場合、トラックの最初に入れる。
+		/// </summary>
+		/// <param name="insertEvent">挿入するイベント</param>
+		/// <param name="targetEvent">挿入ターゲット</param>
+		public void InsertSingleEventAfter(Event insertEvent, Event targetEvent)
+		{
+			/* イベントが既に他のトラックに属している場合、却下する */
+			if (insertEvent.Parent != null || insertEvent.PrevEvent != null || insertEvent.NextEvent != null)
+			{
+				throw new MIDIDataLibException("イベントは既に他のトラックに属しています。");
+			}
+			/* EOTを二重に入れるのを防止 */
+			if (LastEvent != null)
+			{
+				if (LastEvent.Kind == Kinds.EndofTrack &&
+					insertEvent.Kind == Kinds.EndofTrack)
+				{
+					return;
+				}
+			}
+			/* SMFフォーマット1の場合 */
+			if (Parent != null)
+			{
+				if (Parent.Format == 1)
+				{
+					/* コンダクタートラックにMIDIEventを入れるのを防止 */
+					if (Parent.FirstTrack == this)
+					{
+						if (insertEvent.IsMIDIEvent)
+						{
+							throw new MIDIDataLibException("コンダクタートラックにMIDIEventを挿入することはできません。");
+						}
+					}
+					/* 非コンダクタートラックにテンポ・拍子などを入れるのを防止 */
+					else
+					{
+						if (insertEvent.Kind == Kinds.Tempo ||
+							insertEvent.Kind == Kinds.SMPTEOffset ||
+							insertEvent.Kind == Kinds.TimeSignature ||
+							insertEvent.Kind == Kinds.KeySignature)
+						{
+							throw new MIDIDataLibException("非コンダクタートラックにテンポ・拍子などを挿入することはできません。");
+						}
+					}
+				}
+			}
+
+			/* pTargetの直後に挿入する場合 */
+			if (targetEvent != null)
+			{
+				/* ターゲットが所属トラックが異なる場合却下 */
+				if (targetEvent.Parent != this)
+				{
+					throw new MIDIDataLibException("ターゲットの所属トラックが異なります。");
+				}
+				/* EOTの直後に挿入しようとした場合、EOTを移動しEOTの直前に挿入 */
+				if (targetEvent.Kind == Kinds.EndofTrack &&
+					targetEvent.NextEvent == null)
+				{
+					/* EOTを正しく移動するため、先に時刻の整合調整 */
+					if (targetEvent._time < insertEvent._time)
+					{
+						targetEvent._time = insertEvent._time;
+					}
+					targetEvent.SetPrevEvent(insertEvent);
+				}
+				/* EOT以外の直後に挿入しようとした場合、時刻の整合さえすれば可能(pTarget==NULL) */
+				else
+				{
+					if (LastEvent.Kind == Kinds.EndofTrack)
+					{
+						if (LastEvent._time < insertEvent._time)
+						{
+							LastEvent._time = insertEvent._time;
+						}
+					}
+					targetEvent.SetNextEvent(insertEvent);
+				}
+			}
+			/* トラックの最初に挿入する場合(pTarget==NULL) */
+			else if (FirstEvent != null)
+			{
+				/* EOTの直前となる場合は、EOTの時刻を調整する */
+				if (FirstEvent.Kind == Kinds.EndofTrack &&
+					FirstEvent.NextEvent == null)
+				{
+					if (FirstEvent._time < insertEvent._time)
+					{
+						FirstEvent._time = insertEvent._time;
+					}
+				}
+				FirstEvent.SetPrevEvent(insertEvent);
+			}
+			/* 空トラックに挿入する場合 */
+			else
+			{
+				insertEvent.Parent = this;
+				insertEvent.NextEvent = null;
+				insertEvent.PrevEvent = null;
+				insertEvent.NextSameKindEvent = null;
+				insertEvent.PrevSameKindEvent = null;
+				FirstEvent = insertEvent;
+				LastEvent = insertEvent;
+				NumEvent++;
+			}
+		}
+
+
 
 		/// <summary>
 		/// トラックにトラック名イベントを生成して挿入
