@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -248,33 +249,154 @@ namespace Shigobu.MIDI.DataLib
 		/// 結合しているノートオンイベントは既に挿入済みとする。
 		/// 同時刻にノートオフイベントがある場合はそれらの直前に挿入する
 		/// </summary>
-		/// <param name="pNoteOffEvent"></param>
-		public void InsertNoteOffEventBefore(Event pNoteOffEvent)
+		/// <param name="noteOffEvent"></param>
+		internal void InsertNoteOffEventBefore(Event noteOffEvent)
 		{
-			Event pOldEvent = null;
-			Event pTempEvent = null;
-			Event pNoteOnEvent = pNoteOffEvent.PrevCombinedEvent;
-			if (pNoteOnEvent.IsFloating)
+			Event noteOnEvent = noteOffEvent.PrevCombinedEvent;
+			Debug.Assert(!noteOnEvent.IsFloating);
+
+			Event oldEvent = noteOnEvent;
+			Event tempEvent = noteOnEvent.NextEvent;
+			while (tempEvent != null)
 			{
-				return;
-			}
-			pOldEvent = pNoteOnEvent;
-			pTempEvent = pNoteOnEvent.NextEvent;
-			while (pTempEvent != null)
-			{
-				if (pTempEvent.Kind == Kinds.EndofTrack && pTempEvent.NextEvent == null)
+				if (tempEvent.Kind == Kinds.EndofTrack && tempEvent.NextEvent == null)
 				{
-					pTempEvent._time = pNoteOffEvent._time;
+					tempEvent._time = noteOffEvent._time;
 					break;
 				}
-				else if (pTempEvent._time >= pNoteOffEvent._time)
+				else if (tempEvent._time >= noteOffEvent._time)
 				{
 					break;
 				}
-				pOldEvent = pTempEvent;
-				pTempEvent = pTempEvent.NextEvent;
+				oldEvent = tempEvent;
+				tempEvent = tempEvent.NextEvent;
 			}
-			pOldEvent.SetNextEvent(pNoteOffEvent);
+			oldEvent.SetNextEvent(noteOffEvent);
+		}
+
+		/// <summary>
+		/// トラックにノートオフイベントを正しく挿入 
+		/// 結合しているノートオンイベントは既に挿入済みとする。
+		/// 同時刻にノートオフイベントがある場合はそれらの直後に挿入する
+		/// </summary>
+		/// <param name="noteOffEvent"></param>
+		internal void InsertNoteOffEventAfter(Event noteOffEvent)
+		{
+			Event noteOnEvent = noteOffEvent.PrevCombinedEvent;
+			Debug.Assert(!noteOnEvent.IsFloating);
+
+			Event oldEvent = noteOnEvent;
+			Event tempEvent = noteOnEvent.NextEvent;
+			while (tempEvent != null)
+			{
+				if (tempEvent.Kind == Kinds.EndofTrack &&
+					tempEvent.NextEvent == null)
+				{
+					tempEvent._time = noteOffEvent._time;
+					break;
+				}
+				else if (tempEvent._time > noteOffEvent._time ||
+					(tempEvent._time == noteOffEvent._time &&
+					!tempEvent.IsNoteOff))
+				{
+					break;
+				}
+				oldEvent = tempEvent;
+				tempEvent = tempEvent.NextEvent;
+			}
+			oldEvent.SetNextEvent(noteOffEvent);
+		}
+
+		/// <summary>
+		/// トラックに単一のイベントを挿入
+		/// insertEventをtargetEventの直前に入れる。時刻が不正な場合、自動訂正する。
+		/// targetEvent==NULLの場合、トラックの最後に入れる。
+		/// </summary>
+		/// <param name="insertEvent">挿入するイベント</param>
+		/// <param name="targetEvent">挿入ターゲット</param>
+		internal void InsertSingleEventBefore(Event insertEvent, Event targetEvent)
+		{
+			/* イベントが既に他のトラックに属している場合、却下する */
+			if (insertEvent.Parent != null || insertEvent.PrevEvent != null || insertEvent.NextEvent != null)
+			{
+				throw new MIDIDataLibException("イベントは既に他のトラックに属しています。");
+			}
+			/* EOTを二重に入れるのを防止 */
+			if (LastEvent != null)
+			{
+				if (LastEvent.Kind == Kinds.EndofTrack &&
+					insertEvent.Kind == Kinds.EndofTrack)
+				{
+					return;
+				}
+			}
+			/* SMFフォーマット1の場合 */
+			if (Parent != null)
+			{
+				if (Parent.Format == 1)
+				{
+					/* コンダクタートラックにMIDIEventを入れるのを防止 */
+					if (Parent.FirstTrack == this)
+					{
+						if (insertEvent.IsMIDIEvent)
+						{
+							throw new MIDIDataLibException("コンダクタートラックにMIDIEventを挿入することはできません。");
+						}
+					}
+					/* 非コンダクタートラックにテンポ・拍子などを入れるのを防止 */
+					else
+					{
+						if (insertEvent.Kind == Kinds.Tempo ||
+							insertEvent.Kind == Kinds.SMPTEOffset ||
+							insertEvent.Kind == Kinds.TimeSignature ||
+							insertEvent.Kind == Kinds.KeySignature)
+						{
+							throw new MIDIDataLibException("非コンダクタートラックにテンポ・拍子などを挿入することはできません。");
+						}
+					}
+				}
+			}
+			/* pTargetの直前に挿入する場合 */
+			if (targetEvent != null)
+			{
+				/* ターゲットの所属トラックが異なる場合却下 */
+				if (targetEvent.Parent != this)
+				{
+					throw new MIDIDataLibException("ターゲットの所属トラックが異なります。");
+				}
+				targetEvent.SetPrevEvent(insertEvent);
+			}
+			/* トラックの最後に挿入する場合(pTarget==NULL) */
+			else if (LastEvent != null)
+			{
+				/* EOTの後に挿入しようとした場合、EOTを後ろに移動しEOTの直前に挿入 */
+				if (LastEvent.Kind == Kinds.EndofTrack)
+				{
+					/* EOTを正しく移動するため、先に時刻の整合調整 */
+					if (LastEvent._time < insertEvent._time)
+					{
+						LastEvent._time = insertEvent._time;
+					}
+					LastEvent.SetPrevEvent(insertEvent);
+				}
+				/* EOT以外の後に挿入しようとした場合、普通に挿入 */
+				else
+				{
+					LastEvent.SetNextEvent(insertEvent);
+				}
+			}
+			/* 空トラックに挿入する場合 */
+			else
+			{
+				insertEvent.Parent = this;
+				insertEvent.NextEvent = null;
+				insertEvent.PrevEvent = null;
+				insertEvent.NextSameKindEvent = null;
+				insertEvent.PrevSameKindEvent = null;
+				FirstEvent = insertEvent;
+				LastEvent = insertEvent;
+				NumEvent++;
+			}
 		}
 
 		/// <summary>
