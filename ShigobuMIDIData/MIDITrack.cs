@@ -400,6 +400,47 @@ namespace Shigobu.MIDI.DataLib
 		}
 
 		/// <summary>
+		/// トラックにイベントを挿入(結合イベントにも対応)
+		/// insertEventをtargetEventの直前に入れる。時刻が不正な場合、自動訂正する。
+		/// targetEvent==NULLの場合、トラックの最後に入れる。
+		/// </summary>
+		/// <param name="insertEvent">挿入するイベント</param>
+		/// <param name="targetEvent">挿入ターゲット</param>
+		public void InsertEventBefore(Event insertEvent, Event targetEvent)
+		{
+			/* 非浮遊イベントは挿入できない。 */
+			if (!insertEvent.IsFloating)
+			{
+				throw new MIDIDataLibException("挿入するイベントは、浮遊イベントである必要があります。");
+			}
+			insertEvent = insertEvent.FirstCombinedEvent;
+			/* ノートイベント以外の結合イベントの間には挿入できない */
+			if (targetEvent != null)
+			{
+				if (!targetEvent.IsNote)
+				{
+					targetEvent = targetEvent.FirstCombinedEvent;
+				}
+			}
+			/* 単独のイベントの場合 */
+			if (!insertEvent.IsCombined)
+			{
+				InsertSingleEventBefore(insertEvent, targetEvent);
+			}
+			/* ノートイベントの場合 */
+			else if (insertEvent.IsNote)
+			{
+				InsertSingleEventBefore(insertEvent, targetEvent);
+				InsertNoteOffEventBefore(insertEvent.NextCombinedEvent);
+			}
+			else
+			{
+				/*何もしない*/
+			}
+		}
+
+
+		/// <summary>
 		/// トラックにトラック名イベントを生成して挿入
 		/// </summary>
 		/// <param name="time">時刻</param>
