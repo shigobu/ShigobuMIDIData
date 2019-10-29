@@ -446,7 +446,7 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		/// <param name="insertEvent">挿入するイベント</param>
 		/// <param name="targetEvent">挿入ターゲット</param>
-		public void InsertSingleEventAfter(Event insertEvent, Event targetEvent)
+		internal void InsertSingleEventAfter(Event insertEvent, Event targetEvent)
 		{
 			/* イベントが既に他のトラックに属している場合、却下する */
 			if (insertEvent.Parent != null || insertEvent.PrevEvent != null || insertEvent.NextEvent != null)
@@ -549,7 +549,60 @@ namespace Shigobu.MIDI.DataLib
 			}
 		}
 
+		/// <summary>
+		/// トラックにイベントを挿入(結合イベントにも対応) 
+		/// pEventをpTargetの直後に入れる。時刻が不正な場合、自動訂正する。
+		/// pTarget==NULLの場合、トラックの最初に入れる。 
+		/// </summary>
+		/// <param name="insertEvent">挿入するイベント</param>
+		/// <param name="targetEvent">挿入ターゲット</param>
+		public void InsertEventAfter(Event insertEvent, Event targetEvent)
+		{
+			/* 非浮遊イベントは挿入できない。 */
+			if (insertEvent.IsFloating)
+			{
+				throw new MIDIDataLibException("挿入するイベントは、浮遊イベントである必要があります。");
+			}
+			insertEvent = insertEvent.LastCombinedEvent;
+			/* ノートイベント以外の結合イベントの間には挿入できない */
+			if (targetEvent != null)
+			{
+				if (!targetEvent.IsNote)
+				{
+					targetEvent = targetEvent.LastCombinedEvent;
+				}
+			}
+			/* 単独のイベントの場合 */
+			if (!insertEvent.IsCombined)
+			{
+				InsertSingleEventAfter(insertEvent, targetEvent);
+				return;
+			}
+			/* ノートイベントの場合 */
+			else if (insertEvent.IsNote)
+			{
+				InsertSingleEventAfter(insertEvent.PrevCombinedEvent, targetEvent);
+				try
+				{
+					InsertNoteOffEventAfter(insertEvent);
+				}
+				catch(MIDIDataLibException midiEx)
+				{
+					this.RemoveSingleEvent(insertEvent.PrevCombinedEvent);
+					throw;
+				}
+				return;
+			}
+			/* 未定義の結合イベント */
+			return;
+		}
 
+
+
+		private void RemoveSingleEvent(Event prevCombinedEvent)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// トラックにトラック名イベントを生成して挿入
