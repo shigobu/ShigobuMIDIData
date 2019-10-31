@@ -336,7 +336,7 @@ namespace Shigobu.MIDI.DataLib
 				if (Parent.Format == Formats.Format1)
 				{
 					/* コンダクタートラックにMIDIEventを入れるのを防止 */
-					if (Parent.FirstTrack == this)
+					if (ReferenceEquals(Parent.FirstTrack, this))
 					{
 						if (insertEvent.IsMIDIEvent)
 						{
@@ -468,7 +468,7 @@ namespace Shigobu.MIDI.DataLib
 				if (Parent.Format == Formats.Format1)
 				{
 					/* コンダクタートラックにMIDIEventを入れるのを防止 */
-					if (Parent.FirstTrack == this)
+					if (ReferenceEquals(Parent.FirstTrack, this))
 					{
 						if (insertEvent.IsMIDIEvent)
 						{

@@ -1596,7 +1596,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="insertEvent">前のイベント</param>
 		internal void SetPrevEvent(Event insertEvent)
 		{
-			if (this == insertEvent)
+			if (ReferenceEquals(this, insertEvent))
 			{
 				throw new MIDIDataLibException("同じイベントオブジェクトを追加することはできません。");
 			}
@@ -1673,7 +1673,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="insertEvent">次のイベント</param>
 		internal void SetNextEvent(Event insertEvent)
 		{
-			if (this == insertEvent)
+			if (ReferenceEquals(this, insertEvent))
 			{
 				throw new MIDIDataLibException("同じイベントオブジェクトを追加することはできません。");
 			}
@@ -2942,7 +2942,7 @@ namespace Shigobu.MIDI.DataLib
 									break;
 								}
 								/* 対応するノートオンイベントより前には行かない */
-								if (tempEvent == pNoteOnEvent)
+								if (ReferenceEquals(tempEvent, pNoteOnEvent))
 								{
 									break;
 								}
