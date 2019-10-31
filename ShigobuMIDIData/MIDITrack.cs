@@ -333,7 +333,7 @@ namespace Shigobu.MIDI.DataLib
 			/* SMFフォーマット1の場合 */
 			if (Parent != null)
 			{
-				if (Parent.Format == 1)
+				if (Parent.Format == Formats.Format1)
 				{
 					/* コンダクタートラックにMIDIEventを入れるのを防止 */
 					if (Parent.FirstTrack == this)
@@ -465,7 +465,7 @@ namespace Shigobu.MIDI.DataLib
 			/* SMFフォーマット1の場合 */
 			if (Parent != null)
 			{
-				if (Parent.Format == 1)
+				if (Parent.Format == Formats.Format1)
 				{
 					/* コンダクタートラックにMIDIEventを入れるのを防止 */
 					if (Parent.FirstTrack == this)
@@ -597,6 +597,110 @@ namespace Shigobu.MIDI.DataLib
 			return;
 		}
 
+		/// <summary>
+		/// トラックにイベントを挿入(イベントはあらかじめ生成しておく) 
+		/// 挿入位置は時刻により決定する。
+		/// 同時刻のイベントがある場合は、それらの最後に挿入される
+		/// </summary>
+		/// <param name="insertEvent">挿入するイベント</param>
+		public void InsertEvent(Event insertEvent)
+		{
+			/* pEventが浮遊状態であることを確認 */
+			if (insertEvent.Parent != null || insertEvent.PrevEvent != null || insertEvent.NextEvent != null)
+			{
+				return;
+			}
+			/* エンドオブトラックの重複挿入の防止 */
+			if (LastEvent != null)
+			{
+				if (LastEvent.Kind == Kinds.EndofTrack &&
+					insertEvent.Kind == Kinds.EndofTrack)
+				{
+					return;
+				}
+			}
+			/* フォーマット1のときの場合のイベントの種類整合性チェック */
+			if (Parent != null)
+			{
+				if (Parent.Format ==  Formats.Format1)
+				{
+					/* 最初のトラックにMIDIチャンネルイベントの挿入防止 */
+					if (ReferenceEquals(this, Parent.FirstTrack))
+					{
+						if (insertEvent.IsMIDIEvent)
+						{
+							throw new MIDIDataLibException("コンダクタートラックにMIDIEventを挿入することはできません。");
+						}
+					}
+					/* 2番目以降のトラックにテンポ・SMPTEオフセット・拍子記号・調性記号の挿入防止 */
+					else
+					{
+						if (insertEvent.Kind == Kinds.Tempo ||
+							insertEvent.Kind == Kinds.SMPTEOffset ||
+							insertEvent.Kind == Kinds.TimeSignature ||
+							insertEvent.Kind == Kinds.KeySignature)
+						{
+							throw new MIDIDataLibException("非コンダクタートラックにテンポ・拍子などを挿入することはできません。");
+						}
+					}
+				}
+			}
+
+			/* 各イベントの処理 */
+			Event tempInsertEvent = insertEvent.FirstCombinedEvent;
+			while (tempInsertEvent != null)
+			{
+				Event tempEvent = LastEvent;
+				/* トラックの後方から挿入位置を探索 */
+				while (true)
+				{
+					/* トラックにデータがない、又はトラックの先頭入れてよい */
+					if (tempEvent == null)
+					{
+						InsertSingleEventAfter(tempInsertEvent, null);
+						break;
+					}
+					/* pTempEventの直後に入れてよい */
+					else
+					{
+						long insertTime = tempInsertEvent._time;
+						/* 挿入するものがノートオフイベントの場合(ベロシティ0のノートオンを含む) */
+						if (tempInsertEvent.IsNoteOff)
+						{
+							/* 対応するノートオンイベントより前には絶対に来れない (20090111追加) */
+							if (ReferenceEquals(tempEvent, tempInsertEvent.PrevCombinedEvent))
+							{
+								InsertSingleEventAfter(tempInsertEvent, tempEvent);
+								break;
+							}
+							/* 同時刻のイベントがある場合は同時刻の他のノートオフの直後に挿入 */
+							else if (tempEvent._time == insertTime && tempEvent.IsNoteOff)
+							{
+								InsertSingleEventAfter(tempInsertEvent, tempEvent);
+								break;
+							}
+							else if (tempEvent._time < insertTime)
+							{
+								InsertSingleEventAfter(tempInsertEvent, tempEvent);
+								break;
+							}
+						}
+						/* その他のイベントの場合 */
+						else
+						{
+							if (tempEvent._time <= insertTime)
+							{
+								InsertSingleEventAfter(tempInsertEvent, tempEvent);
+								break;
+							}
+						}
+					}
+					tempEvent = tempEvent.PrevEvent;
+				}
+				tempInsertEvent = tempInsertEvent.NextCombinedEvent;
+			}
+		}
+
 
 
 		private void RemoveSingleEvent(Event prevCombinedEvent)
@@ -610,15 +714,6 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="time">時刻</param>
 		/// <param name="text">トラック名</param>
 		public void InsertTrackName(int time, string text)
-		{
-			throw new NotImplementedException();
-		}
-
-		/// <summary>
-		/// トラックにイベントを挿入します。
-		/// </summary>
-		/// <param name="event"></param>
-		public void InsertEvent(Event @event)
 		{
 			throw new NotImplementedException();
 		}
