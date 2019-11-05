@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Shigobu.MIDI.DataLib
 {
-	public enum Formats
+	public enum Format
 	{
 		Format0,
 		Format1,
@@ -15,7 +15,7 @@ namespace Shigobu.MIDI.DataLib
 
 	public class Data
     {
-		public Formats Format { get; set; }            /* SMFフォーマット(0/1) */
+		public Format Format { get; set; }            /* SMFフォーマット(0/1) */
 		public int NumTrack { get; set; }          /* トラック数(0～∞) */
 		public int TimeBase { get; set; }          /* タイムベース(例：120) */
 		public Track FirstTrack { get; set; } /* 最初のトラックへのポインタ(なければNULL) */

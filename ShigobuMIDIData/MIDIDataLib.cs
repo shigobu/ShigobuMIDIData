@@ -8,6 +8,6 @@ namespace Shigobu.MIDI.DataLib
 {
 	public class MIDIDataLib
 	{
-		public static CharCodes DefaultCharCode { get; set; }
+		public static CharCode DefaultCharCode { get; set; }
 	}
 }

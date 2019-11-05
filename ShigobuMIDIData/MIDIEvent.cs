@@ -8,7 +8,7 @@ namespace Shigobu.MIDI.DataLib
 	/// <summary>
 	/// MIDIイベントの種類
 	/// </summary>
-	public enum Kinds
+	public enum Kind
 	{
 		SequenceNumber = 0x00,
 		TextEvent = 0x01,
@@ -44,7 +44,7 @@ namespace Shigobu.MIDI.DataLib
 	/// <summary>
 	/// 文字コードを表す列挙体
 	/// </summary>
-	public enum CharCodes
+	public enum CharCode
 	{
 		/// <summary>
 		/// 指定なし。
@@ -99,7 +99,7 @@ namespace Shigobu.MIDI.DataLib
 	/// <summary>
 	/// 長調か短調かを表します。
 	/// </summary>
-	public enum Keys
+	public enum Key
 	{
 		/// <summary>
 		/// 長調
@@ -160,18 +160,18 @@ namespace Shigobu.MIDI.DataLib
 		/// <summary>
 		/// イベントの種類
 		/// </summary>
-		public Kinds Kind
+		public Kind Kind
 		{
 			get
 			{
 				if (IsMIDIEvent)
 				{
 					//MIDIイベントの場合、チャンネル情報を削除
-					return (Kinds)Enum.ToObject(typeof(Kinds), KindRaw & 0xF0);
+					return (Kind)Enum.ToObject(typeof(Kind), KindRaw & 0xF0);
 				}
 				else
 				{
-					return (Kinds)Enum.ToObject(typeof(Kinds), KindRaw);
+					return (Kind)Enum.ToObject(typeof(Kind), KindRaw);
 				}
 			}
 		}
@@ -258,7 +258,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw <= (int)Kinds.SequenceNumber && (int)Kinds.SequencerSpecific <= KindRaw;
+				return KindRaw <= (int)Kind.SequenceNumber && (int)Kind.SequencerSpecific <= KindRaw;
 			}
 		}
 
@@ -269,7 +269,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.SequenceNumber;
+				return KindRaw == (int)Kind.SequenceNumber;
 			}
 		}
 
@@ -280,7 +280,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.TextEvent;
+				return KindRaw == (int)Kind.TextEvent;
 			}
 		}
 
@@ -291,7 +291,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.CopyrightNotice;
+				return KindRaw == (int)Kind.CopyrightNotice;
 			}
 		}
 
@@ -302,7 +302,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.TrackName;
+				return KindRaw == (int)Kind.TrackName;
 			}
 		}
 
@@ -313,7 +313,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.InstrumentName;
+				return KindRaw == (int)Kind.InstrumentName;
 			}
 		}
 
@@ -324,7 +324,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.Lyric;
+				return KindRaw == (int)Kind.Lyric;
 			}
 		}
 
@@ -335,7 +335,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.Marker;
+				return KindRaw == (int)Kind.Marker;
 			}
 		}
 
@@ -346,7 +346,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.CuePoint;
+				return KindRaw == (int)Kind.CuePoint;
 			}
 		}
 
@@ -357,7 +357,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.ProgramName;
+				return KindRaw == (int)Kind.ProgramName;
 			}
 		}
 
@@ -368,7 +368,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.DeviceName;
+				return KindRaw == (int)Kind.DeviceName;
 			}
 		}
 
@@ -379,7 +379,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.ChannelPrefix;
+				return KindRaw == (int)Kind.ChannelPrefix;
 			}
 		}
 
@@ -390,7 +390,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.PortPrefix;
+				return KindRaw == (int)Kind.PortPrefix;
 			}
 		}
 
@@ -401,7 +401,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.EndofTrack;
+				return KindRaw == (int)Kind.EndofTrack;
 			}
 		}
 
@@ -412,7 +412,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.Tempo;
+				return KindRaw == (int)Kind.Tempo;
 			}
 		}
 
@@ -423,7 +423,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.SMPTEOffset;
+				return KindRaw == (int)Kind.SMPTEOffset;
 			}
 		}
 
@@ -434,7 +434,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.TimeSignature;
+				return KindRaw == (int)Kind.TimeSignature;
 			}
 		}
 
@@ -445,7 +445,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.KeySignature;
+				return KindRaw == (int)Kind.KeySignature;
 			}
 		}
 
@@ -456,7 +456,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				return KindRaw == (int)Kinds.SequencerSpecific;
+				return KindRaw == (int)Kind.SequencerSpecific;
 			}
 		}
 
@@ -966,17 +966,17 @@ namespace Shigobu.MIDI.DataLib
 		/// 文字コードを取得、設定します。
 		/// 設定時は、文字列のエンコードを含みます。
 		/// </summary>
-		public CharCodes CharCode
+		public CharCode CharCode
 		{
 			get
 			{
 				if (KindRaw <= 0x00 || KindRaw >= 0x1F)
 				{
-					return CharCodes.NoCharCod;
+					return CharCode.NoCharCod;
 				}
-				CharCodes charCode = GetCharCodeSingle();
+				CharCode charCode = GetCharCodeSingle();
 				/* データ部に文字コード指定のある場合は、それを返す。 */
-				if (charCode != CharCodes.NoCharCod)
+				if (charCode != CharCode.NoCharCod)
 				{
 					return charCode;
 				}
@@ -985,8 +985,8 @@ namespace Shigobu.MIDI.DataLib
 			}
 			set
 			{
-				CharCodes oldCharCode = CharCode;
-				CharCodes newCharCode = value;
+				CharCode oldCharCode = CharCode;
+				CharCode newCharCode = value;
 				//変更無しの場合は、何もしない。
 				if (oldCharCode == newCharCode)
 				{
@@ -998,10 +998,10 @@ namespace Shigobu.MIDI.DataLib
 					return;
 				}
 
-				if (oldCharCode == CharCodes.NoCharCod && MIDIDataLib.DefaultCharCode != CharCodes.NoCharCod)
+				if (oldCharCode == CharCode.NoCharCod && MIDIDataLib.DefaultCharCode != CharCode.NoCharCod)
 				{
 					//デフォルト文字コードの取得
-					oldCharCode = (CharCodes)Enum.ToObject(typeof(CharCodes), (int)MIDIDataLib.DefaultCharCode | 0x10000);
+					oldCharCode = (CharCode)Enum.ToObject(typeof(CharCode), (int)MIDIDataLib.DefaultCharCode | 0x10000);
 				}
 
 				string oldString;
@@ -1009,23 +1009,23 @@ namespace Shigobu.MIDI.DataLib
 				//今までの文字コードで文字列作成
 				switch (oldCharCode)
 				{
-					case CharCodes.NoCharCod:
+					case CharCode.NoCharCod:
 						encoding = Encoding.Default;
 						oldString = encoding.GetString(Data);
 						break;
-					case CharCodes.LATIN:
+					case CharCode.LATIN:
 						encoding = Encoding.GetEncoding((int)oldCharCode);
 						oldString = encoding.GetString(Data.Skip(8).ToArray());
 						break;
-					case CharCodes.JP:
+					case CharCode.JP:
 						encoding = Encoding.GetEncoding((int)oldCharCode);
 						oldString = encoding.GetString(Data.Skip(5).ToArray());
 						break;
-					case CharCodes.UTF16LE:
+					case CharCode.UTF16LE:
 						encoding = Encoding.GetEncoding((int)oldCharCode);
 						oldString = encoding.GetString(Data.Skip(2).ToArray());
 						break;
-					case CharCodes.UTF16BE:
+					case CharCode.UTF16BE:
 						encoding = Encoding.GetEncoding((int)oldCharCode);
 						oldString = encoding.GetString(Data.Skip(2).ToArray());
 						break;
@@ -1041,22 +1041,22 @@ namespace Shigobu.MIDI.DataLib
 				//新しい文字コードでバイト配列設定
 				switch (newCharCode)
 				{
-					case CharCodes.LATIN:
+					case CharCode.LATIN:
 						newString = "{@LATIN}" + oldString;
 						Data = encoding.GetBytes(newString);
 						break;
-					case CharCodes.JP:
+					case CharCode.JP:
 						newString = "{@JP}" + oldString;
 						Data = encoding.GetBytes(newString);
 						break;
-					case CharCodes.UTF16LE:
+					case CharCode.UTF16LE:
 						temp = encoding.GetBytes(oldString);
 						Data = new byte[temp.Length + 2];
 						Data[0] = 0xFF;
 						Data[1] = 0xFE;
 						temp.CopyTo(Data, 2);						
 						break;
-					case CharCodes.UTF16BE:
+					case CharCode.UTF16BE:
 						temp = encoding.GetBytes(oldString);
 						Data = new byte[temp.Length + 2];
 						Data[0] = 0xFE;
@@ -1081,11 +1081,11 @@ namespace Shigobu.MIDI.DataLib
 				{
 					return "";
 				}
-				CharCodes charCode = CharCode;
-				if (charCode == CharCodes.NoCharCod && MIDIDataLib.DefaultCharCode != CharCodes.NoCharCod)
+				CharCode charCode = CharCode;
+				if (charCode == CharCode.NoCharCod && MIDIDataLib.DefaultCharCode != CharCode.NoCharCod)
 				{
 					//デフォルト文字コードの取得
-					charCode = (CharCodes)Enum.ToObject(typeof(CharCodes), (int)MIDIDataLib.DefaultCharCode | 0x10000);
+					charCode = (CharCode)Enum.ToObject(typeof(CharCode), (int)MIDIDataLib.DefaultCharCode | 0x10000);
 				}
 
 				string encString;
@@ -1093,24 +1093,24 @@ namespace Shigobu.MIDI.DataLib
 				//今までの文字コードで文字列作成
 				switch (charCode)
 				{
-					case CharCodes.NoCharCod:
+					case CharCode.NoCharCod:
 						encoding = Encoding.Default;
 						encString = encoding.GetString(Data);
 						break;
-					case CharCodes.LATIN:
+					case CharCode.LATIN:
 						encoding = Encoding.GetEncoding((int)charCode);
 						encString = encoding.GetString(Data);
 						break;
-					case CharCodes.JP:
+					case CharCode.JP:
 						encoding = Encoding.GetEncoding((int)charCode);
 						encString = encoding.GetString(Data);
 						break;
-					case CharCodes.UTF16LE:
+					case CharCode.UTF16LE:
 						encoding = Encoding.GetEncoding((int)charCode);
 						encString = encoding.GetString(Data.Skip(2).ToArray());
 						encString = "{@UTF16-LE}" + encString;
 						break;
-					case CharCodes.UTF16BE:
+					case CharCode.UTF16BE:
 						encoding = Encoding.GetEncoding((int)charCode);
 						encString = encoding.GetString(Data.Skip(2).ToArray());
 						encString = "{@UTF16-BE}" + encString;
@@ -1131,32 +1131,32 @@ namespace Shigobu.MIDI.DataLib
 				}
 				string encString;
 				byte[] temp;
-				CharCodes charCode = GetTextCharCode(value);
-				if (charCode == CharCodes.NoCharCod && MIDIDataLib.DefaultCharCode != CharCodes.NoCharCod)
+				CharCode charCode = GetTextCharCode(value);
+				if (charCode == CharCode.NoCharCod && MIDIDataLib.DefaultCharCode != CharCode.NoCharCod)
 				{
 					//デフォルト文字コードの取得
-					charCode = (CharCodes)Enum.ToObject(typeof(CharCodes), (int)MIDIDataLib.DefaultCharCode | 0x10000);
+					charCode = (CharCode)Enum.ToObject(typeof(CharCode), (int)MIDIDataLib.DefaultCharCode | 0x10000);
 				}
 
 				Encoding encoding;
 				//バイト配列設定
 				switch (charCode)
 				{
-					case CharCodes.NoCharCod:
+					case CharCode.NoCharCod:
 						encoding = Encoding.Default;
 						Data = encoding.GetBytes(value);
 						break;
-					case CharCodes.LATIN:
+					case CharCode.LATIN:
 						encoding = Encoding.GetEncoding((int)charCode);
 						encString = "{@LATIN}" + value;
 						Data = encoding.GetBytes(encString);
 						break;
-					case CharCodes.JP:
+					case CharCode.JP:
 						encoding = Encoding.GetEncoding((int)charCode);
 						encString = "{@JP}" + value;
 						Data = encoding.GetBytes(encString);
 						break;
-					case CharCodes.UTF16LE:
+					case CharCode.UTF16LE:
 						encoding = Encoding.GetEncoding((int)charCode);
 						temp = encoding.GetBytes(value);
 						Data = new byte[temp.Length + 2];
@@ -1164,7 +1164,7 @@ namespace Shigobu.MIDI.DataLib
 						Data[1] = 0xFE;
 						temp.CopyTo(Data, 2);
 						break;
-					case CharCodes.UTF16BE:
+					case CharCode.UTF16BE:
 						encoding = Encoding.GetEncoding((int)charCode);
 						temp = encoding.GetBytes(value);
 						Data = new byte[temp.Length + 2];
@@ -1188,7 +1188,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				if (Kind != Kinds.SMPTEOffset)
+				if (Kind != Kind.SMPTEOffset)
 				{
 					return null;
 				}
@@ -1204,7 +1204,7 @@ namespace Shigobu.MIDI.DataLib
 			}
 			set
 			{
-				if (Kind != Kinds.SMPTEOffset)
+				if (Kind != Kind.SMPTEOffset)
 				{
 					throw new MIDIDataLibException("SMPTEオフセットイベントではありません。SMPTEオフセットの設定はできません。");
 				}
@@ -1226,7 +1226,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				if (Kind != Kinds.Tempo)
+				if (Kind != Kind.Tempo)
 				{
 					return 0;
 				}
@@ -1234,7 +1234,7 @@ namespace Shigobu.MIDI.DataLib
 			}
 			set
 			{
-				if (Kind != Kinds.Tempo)
+				if (Kind != Kind.Tempo)
 				{
 					throw new MIDIDataLibException("テンポイベントではありません。テンポの設定はできません。");
 				}
@@ -1252,7 +1252,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				if (Kind != Kinds.TimeSignature)
+				if (Kind != Kind.TimeSignature)
 				{
 					return null;
 				}
@@ -1264,7 +1264,7 @@ namespace Shigobu.MIDI.DataLib
 			}
 			set
 			{
-				if (Kind != Kinds.TimeSignature)
+				if (Kind != Kind.TimeSignature)
 				{
 					throw new MIDIDataLibException("拍子イベントではありません。拍子の設定はできません。");
 				}
@@ -1283,17 +1283,17 @@ namespace Shigobu.MIDI.DataLib
 		{
 			get
 			{
-				if (Kind != Kinds.KeySignature)
+				if (Kind != Kind.KeySignature)
 				{
 					throw new MIDIDataLibException("調性記号イベントではありません。調性記号の取得はできません。");
 				}
 				int sf = Data[0];
-				Keys mi = (Keys)Enum.ToObject(typeof(Keys), Data[1]);
+				Key mi = (Key)Enum.ToObject(typeof(Key), Data[1]);
 				return new KeySignature(sf, mi);
 			}
 			set
 			{
-				if (Kind != Kinds.KeySignature)
+				if (Kind != Kind.KeySignature)
 				{
 					throw new MIDIDataLibException("調性記号イベントではありません。調性記号の設定はできません。");
 				}
@@ -1474,7 +1474,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="time">挿入時刻[tick]</param>
 		/// <param name="kind">イベントの種類</param>
 		/// <param name="data">初期データ</param>
-		public Event(int time, Kinds kind, byte[] data) : this(time, (int)kind, data) { }
+		public Event(int time, Kind kind, byte[] data) : this(time, (int)kind, data) { }
 		#endregion
 
 		#region メソッド
@@ -2010,7 +2010,7 @@ namespace Shigobu.MIDI.DataLib
 			byte[] c = new byte[2];
 			c[0] = (byte)((number & 0xFF00) >> 8);
 			c[1] = (byte)(number & 0x00FF);
-			return new Event(time, Kinds.SequenceNumber, c);
+			return new Event(time, Kind.SequenceNumber, c);
 		}
 
 		/// <summary>
@@ -2021,7 +2021,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">テキスト</param>
 		/// <returns>テキストベースのイベント</returns>
-		static private Event CreateTextBasedEvent(int time, int kind, CharCodes charCode, string text)
+		static private Event CreateTextBasedEvent(int time, int kind, CharCode charCode, string text)
 		{
 			if (kind <= 0x00 || kind >= 0x1F)
 			{
@@ -2041,7 +2041,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">テキスト</param>
 		/// <returns>テキストベースのイベント</returns>
-		static private Event CreateTextBasedEvent(int time, Kinds kind, CharCodes charCode, string text)
+		static private Event CreateTextBasedEvent(int time, Kind kind, CharCode charCode, string text)
 		{
 			return CreateTextBasedEvent(time, (int)kind, charCode, text);
 		}
@@ -2055,7 +2055,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>テキストベースのイベント</returns>
 		static private Event CreateTextBasedEvent(int time, int kind, string text)
 		{
-			return Event.CreateTextBasedEvent(time, kind, CharCodes.NoCharCod, text);
+			return Event.CreateTextBasedEvent(time, kind, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2065,9 +2065,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">テキスト</param>
 		/// <returns>テキストイベント</returns>
-		static public Event CreateTextEvent(int time, CharCodes charCode, string text)
+		static public Event CreateTextEvent(int time, CharCode charCode, string text)
 		{
-			return CreateTextBasedEvent(time, Kinds.TextEvent , charCode, text);
+			return CreateTextBasedEvent(time, Kind.TextEvent , charCode, text);
 		}
 
 		/// <summary>
@@ -2078,7 +2078,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>テキストイベント</returns>
 		static public Event  CreateTextEvent(int time, string text) 
 		{
-			return CreateTextEvent(time, CharCodes.NoCharCod, text);
+			return CreateTextEvent(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2088,9 +2088,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">著作権情報</param>
 		/// <returns>著作権イベント</returns>
-		static public Event CreateCopyrightNotice(int time, CharCodes charCode, string text)
+		static public Event CreateCopyrightNotice(int time, CharCode charCode, string text)
 		{
-			return CreateTextBasedEvent(time, Kinds.CopyrightNotice, charCode, text);
+			return CreateTextBasedEvent(time, Kind.CopyrightNotice, charCode, text);
 		}
 
 		/// <summary>
@@ -2101,7 +2101,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>著作権イベント</returns>
 		static public Event CreateCopyrightNotice(int time, string text) 
 		{
-			return CreateCopyrightNotice(time, CharCodes.NoCharCod, text);
+			return CreateCopyrightNotice(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2111,9 +2111,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">トラック名</param>
 		/// <returns>トラック名イベント</returns>
-		static public　Event CreateTrackName(int time, CharCodes charCode, string text)
+		static public　Event CreateTrackName(int time, CharCode charCode, string text)
 		{
-			return CreateTextBasedEvent(time, Kinds.TrackName, charCode, text);
+			return CreateTextBasedEvent(time, Kind.TrackName, charCode, text);
 		}
 
 		/// <summary>
@@ -2124,7 +2124,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>トラック名イベント</returns>
 		static public Event CreateTrackName(int time, string text)
 		{
-			return CreateTrackName(time, CharCodes.NoCharCod, text);
+			return CreateTrackName(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2134,9 +2134,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">インストゥルメント名</param>
 		/// <returns>インストゥルメントイベント</returns>
-		static public Event CreateInstrumentName(int time, CharCodes charCode, string text)
+		static public Event CreateInstrumentName(int time, CharCode charCode, string text)
 		{
-			return CreateTextBasedEvent(time, Kinds.InstrumentName, charCode, text);
+			return CreateTextBasedEvent(time, Kind.InstrumentName, charCode, text);
 		}
 
 		/// <summary>
@@ -2147,7 +2147,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>インストゥルメントイベント</returns>
 		static public Event CreateInstrumentName(int time, string text)
 		{
-			return CreateInstrumentName(time, CharCodes.NoCharCod, text);
+			return CreateInstrumentName(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2157,9 +2157,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">歌詞</param>
 		/// <returns>歌詞イベント</returns>
-		static public Event CreateLyric(int time, CharCodes charCode, string text)
+		static public Event CreateLyric(int time, CharCode charCode, string text)
 		{
-			return CreateTextBasedEvent(time, Kinds.Lyric, charCode, text);
+			return CreateTextBasedEvent(time, Kind.Lyric, charCode, text);
 		}
 
 		/// <summary>
@@ -2170,7 +2170,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>歌詞イベント</returns>
 		static public Event CreateLyric(int time, string text)
 		{
-			return CreateLyric(time, CharCodes.NoCharCod, text);
+			return CreateLyric(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2180,9 +2180,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">マーカー情報</param>
 		/// <returns>マーカーイベント</returns>
-		static public Event CreateMarker(int time, CharCodes charCode, string text)
+		static public Event CreateMarker(int time, CharCode charCode, string text)
 		{
-			return CreateTextBasedEvent(time, Kinds.Marker, charCode, text);
+			return CreateTextBasedEvent(time, Kind.Marker, charCode, text);
 		}
 
 		/// <summary>
@@ -2193,7 +2193,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>マーカーイベント</returns>
 		static public Event CreateMarker(int time, string text)
 		{
-			return CreateMarker(time, CharCodes.NoCharCod, text);
+			return CreateMarker(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2203,9 +2203,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">キューポイント情報</param>
 		/// <returns>キューポイントイベント</returns>
-		static public Event CreateCuePoint(int time, CharCodes charCode, string text)
+		static public Event CreateCuePoint(int time, CharCode charCode, string text)
 		{
-			return CreateTextBasedEvent(time, Kinds.CuePoint, charCode, text);
+			return CreateTextBasedEvent(time, Kind.CuePoint, charCode, text);
 		}
 
 		/// <summary>
@@ -2216,7 +2216,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>キューポイントイベント</returns>
 		static public Event CreateCuePoint(int time, string text)
 		{
-			return CreateCuePoint(time, CharCodes.NoCharCod, text);
+			return CreateCuePoint(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2226,9 +2226,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">プログラム名</param>
 		/// <returns>プログラム名イベント</returns>
-		static public Event CreateProgramName(int time, CharCodes charCode, string text)
+		static public Event CreateProgramName(int time, CharCode charCode, string text)
 		{
-			return CreateTextBasedEvent(time, Kinds.ProgramName, charCode, text);
+			return CreateTextBasedEvent(time, Kind.ProgramName, charCode, text);
 		}
 
 		/// <summary>
@@ -2239,7 +2239,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>プログラム名イベント</returns>
 		static public Event CreateProgramName(int time, string text)
 		{
-			return CreateProgramName(time, CharCodes.NoCharCod, text);
+			return CreateProgramName(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2249,9 +2249,9 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">デバイス名</param>
 		/// <returns>デバイス名イベント</returns>
-		static public Event CreateDeviceName(int time, CharCodes charCode, string text) 
+		static public Event CreateDeviceName(int time, CharCode charCode, string text) 
 		{
-			return CreateTextBasedEvent(time, Kinds.DeviceName, charCode, text);
+			return CreateTextBasedEvent(time, Kind.DeviceName, charCode, text);
 		}
 
 		/// <summary>
@@ -2262,7 +2262,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>デバイス名イベント</returns>
 		static public Event CreateDeviceName(int time, string text)
 		{
-			return CreateDeviceName(time, CharCodes.NoCharCod, text);
+			return CreateDeviceName(time, CharCode.NoCharCod, text);
 		}
 
 		/// <summary>
@@ -2275,7 +2275,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			byte[] c = new byte[1];
 			c[0] = (byte)Clip(0, ch, 16);
-			return new Event(time, Kinds.ChannelPrefix, c);
+			return new Event(time, Kind.ChannelPrefix, c);
 		}
 
 		/// <summary>
@@ -2288,7 +2288,7 @@ namespace Shigobu.MIDI.DataLib
 		{
 			byte[] c = new byte[1];
 			c[0] = (byte)Clip(0, num, 255);
-			return new Event(time, Kinds.PortPrefix, c);
+			return new Event(time, Kind.PortPrefix, c);
 		}
 
 		/// <summary>
@@ -2298,7 +2298,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>エンドオブトラックイベント</returns>
 		static public Event CreateEndofTrack(int time)
 		{
-			return new Event(time, Kinds.EndofTrack, new byte[0]);
+			return new Event(time, Kind.EndofTrack, new byte[0]);
 		}
 
 		/// <summary>
@@ -2313,7 +2313,7 @@ namespace Shigobu.MIDI.DataLib
 			c[0] = (byte)((Clip(MinTempo, tempo, MaxTempo) & 0xFF0000) >> 16);
 			c[1] = (byte)((Clip(MinTempo, tempo, MaxTempo) & 0x00FF00) >> 8);
 			c[2] = (byte)((Clip(MinTempo, tempo, MaxTempo) & 0x0000FF) >> 0);
-			return new Event(time, Kinds.Tempo, c);
+			return new Event(time, Kind.Tempo, c);
 		}
 
 		/// <summary>
@@ -2336,7 +2336,7 @@ namespace Shigobu.MIDI.DataLib
 			c[2] = (byte)Clip(0, sec, 59);
 			c[3] = (byte)Clip(0, frame, maxFrame[(int)mode & 0x03]);
 			c[4] = (byte)Clip(0, subFrame, 99);
-			return new Event(time, Kinds.SMPTEOffset, c);
+			return new Event(time, Kind.SMPTEOffset, c);
 		}
 
 		/// <summary>
@@ -2366,7 +2366,7 @@ namespace Shigobu.MIDI.DataLib
 			c[1] = (byte)Clip(0, dd, 255);
 			c[2] = (byte)Clip(0, cc, 255);
 			c[3] = (byte)Clip(0, bb, 255);
-			return new Event(time, Kinds.TimeSignature, c);
+			return new Event(time, Kind.TimeSignature, c);
 		}
 
 		/// <summary>
@@ -2392,7 +2392,7 @@ namespace Shigobu.MIDI.DataLib
 			byte[] c = new byte[2];
 			c[0] = (byte)(Clip(-7, sf, +7));
 			c[1] = (byte)(Clip(0, mi, 1));
-			return new Event(time, Kinds.KeySignature, c);
+			return new Event(time, Kind.KeySignature, c);
 		}
 
 		/// <summary>
@@ -2414,7 +2414,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <returns>シーケンサ独自のイベント</returns>
 		static public Event CreateSequencerSpecific(int time, byte[] buf)
 		{
-			return new Event(time, Kinds.SequencerSpecific, buf);
+			return new Event(time, Kind.SequencerSpecific, buf);
 		}
 
 		/// <summary>
@@ -2428,10 +2428,10 @@ namespace Shigobu.MIDI.DataLib
 		static public Event CreateNoteOff(int time, int ch, int key, int vel)
 		{
 			byte[] c = new byte[3];
-			c[0] = (byte)((int)Kinds.NoteOff | (ch & 0x0F));
+			c[0] = (byte)((int)Kind.NoteOff | (ch & 0x0F));
 			c[1] = (byte)Clip(0, key, 127);
 			c[2] = (byte)Clip(0, vel, 127);
-			return new Event(time, (int)Kinds.NoteOff | (ch & 0x0F), c);
+			return new Event(time, (int)Kind.NoteOff | (ch & 0x0F), c);
 		}
 
 		/// <summary>
@@ -2445,12 +2445,12 @@ namespace Shigobu.MIDI.DataLib
 		static public Event CreateNoteOn(int time, int ch, int key, int vel)
 		{
 			byte[] c = new byte[3];
-			c[0] = (byte)((int)Kinds.NoteOn | (ch & 0x0F));
+			c[0] = (byte)((int)Kind.NoteOn | (ch & 0x0F));
 			//!!Clipの範囲が間違っている??
 			//c[1] = (byte)(Clip(1, key, 127));
 			c[1] = (byte)Clip(0, key, 127);
 			c[2] = (byte)Clip(0, vel, 127);
-			return new Event(time, (int)Kinds.NoteOn | (ch & 0x0F), c);
+			return new Event(time, (int)Kind.NoteOn | (ch & 0x0F), c);
 		}
 
 		/// <summary>
@@ -2533,10 +2533,10 @@ namespace Shigobu.MIDI.DataLib
 		static public Event CreateKeyAftertouch(int time, int ch, int key, int val)
 		{
 			byte[] c = new byte[3];
-			c[0] = (byte)((int)Kinds.KeyAfterTouch | (ch & 0x0F));
+			c[0] = (byte)((int)Kind.KeyAfterTouch | (ch & 0x0F));
 			c[1] = (byte)(Clip(0, key, 127));
 			c[2] = (byte)(Clip(0, val, 127));
-			return new Event(time, (int)Kinds.KeyAfterTouch | c[0], c);
+			return new Event(time, (int)Kind.KeyAfterTouch | c[0], c);
 		}
 
 		/// <summary>
@@ -2550,10 +2550,10 @@ namespace Shigobu.MIDI.DataLib
 		static public Event CreateControlChange(int time, int ch, int num, int val)
 		{
 			byte[] c = new byte[3];
-			c[0] = (byte)((int)Kinds.ControlChange | (ch & 0x0F));
+			c[0] = (byte)((int)Kind.ControlChange | (ch & 0x0F));
 			c[1] = (byte)(Clip(0, num, 127));
 			c[2] = (byte)(Clip(0, val, 127));
-			return new Event(time, (int)Kinds.ControlChange | c[0], c);
+			return new Event(time, (int)Kind.ControlChange | c[0], c);
 		}
 
 		/// <summary>
@@ -2566,9 +2566,9 @@ namespace Shigobu.MIDI.DataLib
 		static public Event CreateProgramChange(int time, int ch, int val)
 		{
 			byte[] c = new byte[2];
-			c[0] = (byte)((int)Kinds.ProgramChange | (ch & 0x0F));
+			c[0] = (byte)((int)Kind.ProgramChange | (ch & 0x0F));
 			c[1] = (byte)(Clip(0, val, 127));
-			return new Event(time, (int)Kinds.ProgramChange | c[0], c);
+			return new Event(time, (int)Kind.ProgramChange | c[0], c);
 		}
 
 		/// <summary>
@@ -2581,9 +2581,9 @@ namespace Shigobu.MIDI.DataLib
 		static public Event CreateChannelAftertouch(int time, int ch, int val)
 		{
 			byte[] c = new byte[2];
-			c[0] = (byte)((int)Kinds.ChannelAfterTouch | (ch & 0x0F));
+			c[0] = (byte)((int)Kind.ChannelAfterTouch | (ch & 0x0F));
 			c[1] = (byte)(Clip(0, val, 127));
-			return new Event(time, (int)Kinds.ChannelAfterTouch | c[0], c);
+			return new Event(time, (int)Kind.ChannelAfterTouch | c[0], c);
 		}
 
 		/// <summary>
@@ -2596,10 +2596,10 @@ namespace Shigobu.MIDI.DataLib
 		static public Event CreatePitchBend(int time, int ch, int val)
 		{
 			byte[] c = new byte[3];
-			c[0] = (byte)((int)Kinds.PitchBend | (ch & 0x0F));
+			c[0] = (byte)((int)Kind.PitchBend | (ch & 0x0F));
 			c[1] = (byte)(Clip(0, val, 16383) & 0x7F);
 			c[2] = (byte)((Clip(0, val, 16383) >> 7) & 0x7F);
-			return new Event(time, (int)Kinds.PitchBend | c[0], c);
+			return new Event(time, (int)Kind.PitchBend | c[0], c);
 		}
 
 		/// <summary>
@@ -2612,11 +2612,11 @@ namespace Shigobu.MIDI.DataLib
 		{
 			if (buf[0] == 0xF0)
 			{
-				return new Event(time, Kinds.SysExStart, buf);
+				return new Event(time, Kind.SysExStart, buf);
 			}
 			else
 			{
-				return new Event(time, Kinds.SysExContinue, buf);
+				return new Event(time, Kind.SysExContinue, buf);
 			}
 		}
 		#endregion
@@ -2626,96 +2626,96 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		/// <param name="data">文字列</param>
 		/// <returns>文字コード</returns>
-		private CharCodes GetTextCharCode(string data) 
+		private CharCode GetTextCharCode(string data) 
 		{
 			/* データ部に文字コード指定のある場合は、それを返す。 */
 			if (data != null) {
 				if (data.Length >= 11 && data.StartsWith("{@UTF-16LE}"))
 				{
-					return CharCodes.UTF16LE;
+					return CharCode.UTF16LE;
 				}
 				if (data.Length >= 11 && data.StartsWith("{@UTF-16BE}"))
 				{
-					return CharCodes.UTF16BE;
+					return CharCode.UTF16BE;
 				}
 				if (data.Length >= 8 && data.StartsWith("{@LATIN}"))
 				{
-					return CharCodes.LATIN;
+					return CharCode.LATIN;
 				}
 				if (data.Length >= 5 && data.StartsWith("{@JP}"))
 				{
-					return CharCodes.JP;
+					return CharCode.JP;
 				}
 			}
 			/* データ部に文字コード指定のない場合、CharCodes.NoCharCodを返す。 */
-			return CharCodes.NoCharCod;
+			return CharCode.NoCharCod;
 		}
 
 		/// <summary>
 		/// イベントの文字コードを取得
 		/// </summary>
 		/// <returns>文字コード</returns>
-		private CharCodes GetCharCodeSingle()
+		private CharCode GetCharCodeSingle()
 		{
 			if (KindRaw <= 0x00 || KindRaw >= 0x1F)
 			{
-				return CharCodes.NoCharCod;
+				return CharCode.NoCharCod;
 			}
 			/* データ部に文字コード指定のある場合は、それを返す。 */
 			if (Data != null)
 			{
 				if (Data.Length >= 2 && Data[0] == 0xFF && Data[1] == 0xFE)
 				{
-					return CharCodes.UTF16LE;
+					return CharCode.UTF16LE;
 				}
 				if (Data.Length >= 2 && Data[0] == 0xFE && Data[1] == 0xFF)
 				{
-					return CharCodes.UTF16BE;
+					return CharCode.UTF16BE;
 				}
 				if (Data.Length >= 8 && Encoding.ASCII.GetString(Data.Take(8).ToArray()).StartsWith("{@LATIN}"))
 				{
-					return CharCodes.LATIN;
+					return CharCode.LATIN;
 				}
 				if (Data.Length >= 5 && Encoding.ASCII.GetString(Data.Take(5).ToArray()).StartsWith("{@JP}"))
 				{
-					return CharCodes.JP;
+					return CharCode.JP;
 				}
 			}
 			/* データ部に文字コード指定のない場合、CharCodes.NoCharCodを返す。 */
-			return CharCodes.NoCharCod;
+			return CharCode.NoCharCod;
 		}
 
 		/// <summary>
 		/// 直近の同種のイベントの文字コードを返す
 		/// </summary>
 		/// <returns>文字コード</returns>
-		private CharCodes FindCharCode()
+		private CharCode FindCharCode()
 		{
 			if (KindRaw <= 0x00 || KindRaw >= 0x1F)
 			{
-				return CharCodes.NoCharCod;
+				return CharCode.NoCharCod;
 			}
 			Event prevEvent = PrevEvent;
 			while (prevEvent != null)
 			{
 				if (prevEvent.Kind == Kind)
 				{
-					CharCodes charCode = prevEvent.GetCharCodeSingle();
+					CharCode charCode = prevEvent.GetCharCodeSingle();
 					switch (charCode)
 					{
-						case CharCodes.LATIN:
-							return CharCodes.NOCHARCODELATIN;
-						case CharCodes.JP:
-							return CharCodes.NOCHARCODEJP;
-						case CharCodes.UTF16LE:
-							return CharCodes.NOCHARCODEUTF16LE;
-						case CharCodes.UTF16BE:
-							return CharCodes.NOCHARCODEUTF16BE;
+						case CharCode.LATIN:
+							return CharCode.NOCHARCODELATIN;
+						case CharCode.JP:
+							return CharCode.NOCHARCODEJP;
+						case CharCode.UTF16LE:
+							return CharCode.NOCHARCODEUTF16LE;
+						case CharCode.UTF16BE:
+							return CharCode.NOCHARCODEUTF16BE;
 					}
 				}
 				prevEvent = prevEvent.PrevEvent;
 			}
-			return CharCodes.NoCharCod;
+			return CharCode.NoCharCod;
 		}
 
 		/// <summary>
@@ -2737,7 +2737,7 @@ namespace Shigobu.MIDI.DataLib
 
 			/* 以下は浮遊イベントでない場合の処理 */
 			/* EOTイベントを動かす場合の特殊処理 */
-			if (Kind == Kinds.EndofTrack && NextEvent == null)
+			if (Kind == Kind.EndofTrack && NextEvent == null)
 			{
 				/* EOTイベントの前に別のイベントがある場合 */
 				if (PrevEvent != null)
@@ -2794,7 +2794,7 @@ namespace Shigobu.MIDI.DataLib
 							}
 							if (tempEvent != null)
 							{
-								if (tempEvent.Kind == Kinds.EndofTrack &&
+								if (tempEvent.Kind == Kind.EndofTrack &&
 									tempEvent.NextEvent == null)
 								{
 									tempEvent._time = time;
@@ -2812,7 +2812,7 @@ namespace Shigobu.MIDI.DataLib
 									break;
 								}
 								/* EOTよりも後に来る場合はEOTを後ろへ追い込む */
-								if (tempEvent.Kind == Kinds.EndofTrack &&
+								if (tempEvent.Kind == Kind.EndofTrack &&
 									tempEvent.NextEvent == null)
 								{
 									tempEvent._time = time;
@@ -2834,7 +2834,7 @@ namespace Shigobu.MIDI.DataLib
 								break;
 							}
 							/* EOTよりも後に来る場合はEOTを後ろへ追い込む */
-							if (tempEvent.Kind == Kinds.EndofTrack &&
+							if (tempEvent.Kind == Kind.EndofTrack &&
 								tempEvent.NextEvent == null)
 							{
 								tempEvent._time = time;
@@ -2855,7 +2855,7 @@ namespace Shigobu.MIDI.DataLib
 							break;
 						}
 						/* EOTよりも後に来る場合はEOTを後ろへ追い込む */
-						if (tempEvent.Kind == Kinds.EndofTrack &&
+						if (tempEvent.Kind == Kind.EndofTrack &&
 							tempEvent.NextEvent == null)
 						{
 							tempEvent._time = time;

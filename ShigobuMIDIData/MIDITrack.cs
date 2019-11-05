@@ -102,7 +102,7 @@ namespace Shigobu.MIDI.DataLib
 			{
 				foreach (Event @event in this)
 				{
-					if (@event.Kind == Kinds.TrackName)
+					if (@event.Kind == Kind.TrackName)
 					{
 						return @event.Text;
 					}
@@ -113,7 +113,7 @@ namespace Shigobu.MIDI.DataLib
 			{
 				foreach (Event @event in this)
 				{
-					if (@event.Kind == Kinds.TrackName)
+					if (@event.Kind == Kind.TrackName)
 					{
 						@event.Text = value;
 						return;
@@ -132,7 +132,7 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		/// <param name="kind">イベントの種類</param>
 		/// <returns>イベント</returns>
-		public Event GetFirstKindEvent(Kinds kind)
+		public Event GetFirstKindEvent(Kind kind)
 		{
 			for(Event @event = FirstEvent; @event != null; @event = @event.NextEvent)
 			{
@@ -149,7 +149,7 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		/// <param name="kind">イベントの種類</param>
 		/// <returns>イベント</returns>
-		public Event GetLastKindEvent(Kinds kind)
+		public Event GetLastKindEvent(Kind kind)
 		{
 			for (Event @event = LastEvent; @event != null; @event = @event.PrevEvent)
 			{
@@ -259,7 +259,7 @@ namespace Shigobu.MIDI.DataLib
 			Event tempEvent = noteOnEvent.NextEvent;
 			while (tempEvent != null)
 			{
-				if (tempEvent.Kind == Kinds.EndofTrack && tempEvent.NextEvent == null)
+				if (tempEvent.Kind == Kind.EndofTrack && tempEvent.NextEvent == null)
 				{
 					tempEvent._time = noteOffEvent._time;
 					break;
@@ -289,7 +289,7 @@ namespace Shigobu.MIDI.DataLib
 			Event tempEvent = noteOnEvent.NextEvent;
 			while (tempEvent != null)
 			{
-				if (tempEvent.Kind == Kinds.EndofTrack &&
+				if (tempEvent.Kind == Kind.EndofTrack &&
 					tempEvent.NextEvent == null)
 				{
 					tempEvent._time = noteOffEvent._time;
@@ -324,8 +324,8 @@ namespace Shigobu.MIDI.DataLib
 			/* EOTを二重に入れるのを防止 */
 			if (LastEvent != null)
 			{
-				if (LastEvent.Kind == Kinds.EndofTrack &&
-					insertEvent.Kind == Kinds.EndofTrack)
+				if (LastEvent.Kind == Kind.EndofTrack &&
+					insertEvent.Kind == Kind.EndofTrack)
 				{
 					return;
 				}
@@ -333,7 +333,7 @@ namespace Shigobu.MIDI.DataLib
 			/* SMFフォーマット1の場合 */
 			if (Parent != null)
 			{
-				if (Parent.Format == Formats.Format1)
+				if (Parent.Format == Format.Format1)
 				{
 					/* コンダクタートラックにMIDIEventを入れるのを防止 */
 					if (ReferenceEquals(Parent.FirstTrack, this))
@@ -346,10 +346,10 @@ namespace Shigobu.MIDI.DataLib
 					/* 非コンダクタートラックにテンポ・拍子などを入れるのを防止 */
 					else
 					{
-						if (insertEvent.Kind == Kinds.Tempo ||
-							insertEvent.Kind == Kinds.SMPTEOffset ||
-							insertEvent.Kind == Kinds.TimeSignature ||
-							insertEvent.Kind == Kinds.KeySignature)
+						if (insertEvent.Kind == Kind.Tempo ||
+							insertEvent.Kind == Kind.SMPTEOffset ||
+							insertEvent.Kind == Kind.TimeSignature ||
+							insertEvent.Kind == Kind.KeySignature)
 						{
 							throw new MIDIDataLibException("非コンダクタートラックにテンポ・拍子などを挿入することはできません。");
 						}
@@ -370,7 +370,7 @@ namespace Shigobu.MIDI.DataLib
 			else if (LastEvent != null)
 			{
 				/* EOTの後に挿入しようとした場合、EOTを後ろに移動しEOTの直前に挿入 */
-				if (LastEvent.Kind == Kinds.EndofTrack)
+				if (LastEvent.Kind == Kind.EndofTrack)
 				{
 					/* EOTを正しく移動するため、先に時刻の整合調整 */
 					if (LastEvent._time < insertEvent._time)
@@ -456,8 +456,8 @@ namespace Shigobu.MIDI.DataLib
 			/* EOTを二重に入れるのを防止 */
 			if (LastEvent != null)
 			{
-				if (LastEvent.Kind == Kinds.EndofTrack &&
-					insertEvent.Kind == Kinds.EndofTrack)
+				if (LastEvent.Kind == Kind.EndofTrack &&
+					insertEvent.Kind == Kind.EndofTrack)
 				{
 					return;
 				}
@@ -465,7 +465,7 @@ namespace Shigobu.MIDI.DataLib
 			/* SMFフォーマット1の場合 */
 			if (Parent != null)
 			{
-				if (Parent.Format == Formats.Format1)
+				if (Parent.Format == Format.Format1)
 				{
 					/* コンダクタートラックにMIDIEventを入れるのを防止 */
 					if (ReferenceEquals(Parent.FirstTrack, this))
@@ -478,10 +478,10 @@ namespace Shigobu.MIDI.DataLib
 					/* 非コンダクタートラックにテンポ・拍子などを入れるのを防止 */
 					else
 					{
-						if (insertEvent.Kind == Kinds.Tempo ||
-							insertEvent.Kind == Kinds.SMPTEOffset ||
-							insertEvent.Kind == Kinds.TimeSignature ||
-							insertEvent.Kind == Kinds.KeySignature)
+						if (insertEvent.Kind == Kind.Tempo ||
+							insertEvent.Kind == Kind.SMPTEOffset ||
+							insertEvent.Kind == Kind.TimeSignature ||
+							insertEvent.Kind == Kind.KeySignature)
 						{
 							throw new MIDIDataLibException("非コンダクタートラックにテンポ・拍子などを挿入することはできません。");
 						}
@@ -498,7 +498,7 @@ namespace Shigobu.MIDI.DataLib
 					throw new MIDIDataLibException("ターゲットの所属トラックが異なります。");
 				}
 				/* EOTの直後に挿入しようとした場合、EOTを移動しEOTの直前に挿入 */
-				if (targetEvent.Kind == Kinds.EndofTrack &&
+				if (targetEvent.Kind == Kind.EndofTrack &&
 					targetEvent.NextEvent == null)
 				{
 					/* EOTを正しく移動するため、先に時刻の整合調整 */
@@ -511,7 +511,7 @@ namespace Shigobu.MIDI.DataLib
 				/* EOT以外の直後に挿入しようとした場合、時刻の整合さえすれば可能(pTarget==NULL) */
 				else
 				{
-					if (LastEvent.Kind == Kinds.EndofTrack)
+					if (LastEvent.Kind == Kind.EndofTrack)
 					{
 						if (LastEvent._time < insertEvent._time)
 						{
@@ -525,7 +525,7 @@ namespace Shigobu.MIDI.DataLib
 			else if (FirstEvent != null)
 			{
 				/* EOTの直前となる場合は、EOTの時刻を調整する */
-				if (FirstEvent.Kind == Kinds.EndofTrack &&
+				if (FirstEvent.Kind == Kind.EndofTrack &&
 					FirstEvent.NextEvent == null)
 				{
 					if (FirstEvent._time < insertEvent._time)
@@ -613,8 +613,8 @@ namespace Shigobu.MIDI.DataLib
 			/* エンドオブトラックの重複挿入の防止 */
 			if (LastEvent != null)
 			{
-				if (LastEvent.Kind == Kinds.EndofTrack &&
-					insertEvent.Kind == Kinds.EndofTrack)
+				if (LastEvent.Kind == Kind.EndofTrack &&
+					insertEvent.Kind == Kind.EndofTrack)
 				{
 					return;
 				}
@@ -622,7 +622,7 @@ namespace Shigobu.MIDI.DataLib
 			/* フォーマット1のときの場合のイベントの種類整合性チェック */
 			if (Parent != null)
 			{
-				if (Parent.Format ==  Formats.Format1)
+				if (Parent.Format ==  Format.Format1)
 				{
 					/* 最初のトラックにMIDIチャンネルイベントの挿入防止 */
 					if (ReferenceEquals(this, Parent.FirstTrack))
@@ -635,10 +635,10 @@ namespace Shigobu.MIDI.DataLib
 					/* 2番目以降のトラックにテンポ・SMPTEオフセット・拍子記号・調性記号の挿入防止 */
 					else
 					{
-						if (insertEvent.Kind == Kinds.Tempo ||
-							insertEvent.Kind == Kinds.SMPTEOffset ||
-							insertEvent.Kind == Kinds.TimeSignature ||
-							insertEvent.Kind == Kinds.KeySignature)
+						if (insertEvent.Kind == Kind.Tempo ||
+							insertEvent.Kind == Kind.SMPTEOffset ||
+							insertEvent.Kind == Kind.TimeSignature ||
+							insertEvent.Kind == Kind.KeySignature)
 						{
 							throw new MIDIDataLibException("非コンダクタートラックにテンポ・拍子などを挿入することはできません。");
 						}

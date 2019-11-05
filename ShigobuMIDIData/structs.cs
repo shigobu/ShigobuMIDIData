@@ -110,14 +110,14 @@ namespace Shigobu.MIDI.DataLib
 		/// </summary>
 		/// <param name="sf">#又は♭の数</param>
 		/// <param name="mi">長調か短調か</param>
-		public KeySignature(int sf, Keys mi) : this()
+		public KeySignature(int sf, Key mi) : this()
 		{
 			this.sf = sf;
 			this.mi = mi;
 		}
 
 		public int sf { get; set; }
-		public Keys mi { get; set; }
+		public Key mi { get; set; }
 	}
 
 	/// <summary>
