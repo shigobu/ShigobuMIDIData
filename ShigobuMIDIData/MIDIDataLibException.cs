@@ -12,7 +12,7 @@ namespace Shigobu.MIDI.DataLib
 
 		public MIDIDataLibException(string message) : base(message) { }
 
-		public MIDIDataLibException(string message, Exception innerException) : base() { }
+		public MIDIDataLibException(string message, Exception innerException) : base(message, innerException) { }
 
 	}
 }
