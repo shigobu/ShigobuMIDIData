@@ -1130,15 +1130,40 @@ namespace Shigobu.MIDI.DataLib
 					throw new MIDIDataLibException("文字列を格納しているイベントではありません。文字列の設定はできません。");
 				}
 				string encString;
-				byte[] temp;
 				CharCode charCode = GetTextCharCode(value);
+				//文字列から文字コードが判定できたら、先頭の識別子を消す。
+				if (charCode != CharCode.NoCharCod)
+				{
+					switch (charCode)
+					{
+						case CharCode.LATIN:
+							value = value.Remove(0, "{@LATIN}".Length);
+							break;
+						case CharCode.JP:
+							value = value.Remove(0, "{@JP}".Length);
+							break;
+						case CharCode.UTF16LE:
+						case CharCode.UTF16BE:
+							value = value.Remove(0, 2);
+							break;
+						default:
+							//何もしない
+							break;
+					}
+				}
+				//文字列に文字コード識別子が無い場合、現在の文字コードを取得する。
+				if (charCode == CharCode.NoCharCod)
+				{
+					charCode = CharCode;
+				}
+				//デフォルト文字コードの取得
 				if (charCode == CharCode.NoCharCod && MIDIDataLib.DefaultCharCode != CharCode.NoCharCod)
 				{
-					//デフォルト文字コードの取得
 					charCode = (CharCode)Enum.ToObject(typeof(CharCode), (int)MIDIDataLib.DefaultCharCode | 0x10000);
 				}
 
 				Encoding encoding;
+				byte[] temp;
 				//バイト配列設定
 				switch (charCode)
 				{
@@ -2021,11 +2046,11 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">テキスト</param>
 		/// <returns>テキストベースのイベント</returns>
-		static private Event CreateTextBasedEvent(int time, int kind, CharCode charCode, string text)
+		static internal Event CreateTextBasedEvent(int time, int kind, CharCode charCode, string text)
 		{
 			if (kind <= 0x00 || kind >= 0x1F)
 			{
-				throw new MIDIDataLibException("指定のイベント種類は、テキストイベントではありません。");
+				throw new ArgumentException("テキストイベントではありません。", nameof(kind));
 			}
 			Event CreateEvent = new Event(time, kind, new byte[0]);
 			CreateEvent.CharCode = charCode;
@@ -2041,7 +2066,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="charCode">文字コード</param>
 		/// <param name="text">テキスト</param>
 		/// <returns>テキストベースのイベント</returns>
-		static private Event CreateTextBasedEvent(int time, Kind kind, CharCode charCode, string text)
+		static public Event CreateTextBasedEvent(int time, Kind kind, CharCode charCode, string text)
 		{
 			return CreateTextBasedEvent(time, (int)kind, charCode, text);
 		}
@@ -2053,7 +2078,7 @@ namespace Shigobu.MIDI.DataLib
 		/// <param name="kind">イベント種類</param>
 		/// <param name="text">テキスト</param>
 		/// <returns>テキストベースのイベント</returns>
-		static private Event CreateTextBasedEvent(int time, int kind, string text)
+		static public Event CreateTextBasedEvent(int time, int kind, string text)
 		{
 			return Event.CreateTextBasedEvent(time, kind, CharCode.NoCharCod, text);
 		}

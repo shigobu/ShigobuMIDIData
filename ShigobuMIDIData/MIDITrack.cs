@@ -586,9 +586,9 @@ namespace Shigobu.MIDI.DataLib
 				{
 					InsertNoteOffEventAfter(insertEvent);
 				}
-				catch(MIDIDataLibException midiEx)
+				catch(Exception ex)
 				{
-					this.RemoveSingleEvent(insertEvent.PrevCombinedEvent);
+					RemoveSingleEvent(insertEvent.PrevCombinedEvent);
 					throw;
 				}
 				return;
@@ -701,7 +701,77 @@ namespace Shigobu.MIDI.DataLib
 			}
 		}
 
+		/// <summary>
+		/// トラックにシーケンス番号イベントを生成して挿入
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="num">シーケンス番号</param>
+		public void InsertSequenceNumber(int time, int num)
+		{
+			InsertEvent(Event.CreateSequenceNumber(time, num));
+		}
 
+		/// <summary>
+		/// トラックにテキストベースイベントを生成して挿入
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="kind">イベントの種類</param>
+		/// <param name="text">テキスト</param>
+		public void InsertTextBasedEvent(int time, Kind kind, string text) 
+		{
+			InsertTextBasedEvent(time, kind, CharCode.NoCharCod, text);
+		}
+
+		/// <summary>
+		/// トラックにテキストベースイベントを生成して挿入(文字コード指定あり)
+		/// </summary>
+		/// <param name="time">時刻</param>
+		/// <param name="kind">イベントの種類</param>
+		/// <param name="charCode">文字コード</param>
+		/// <param name="text">テキスト</param>
+		public void InsertTextBasedEvent(int time, Kind kind, CharCode charCode, string text)
+		{
+			if (kind <= 0x00 || (int)kind >= 0x1F)
+			{
+				throw new ArgumentException("テキストイベントではありません。", nameof(kind));
+			}
+
+			if (text == null)
+			{
+				throw new ArgumentNullException(nameof(text));
+			}
+			/* lCharCode==MIDIEVENT_NOCHARCODEの場合でも、*/
+			/* 文字コードは直近の同種イベントに基づいてエンコードされるが、*/
+			/* この時点では探索ができないため、仮に空の文字列で生成する。 */
+			Event @event = Event.CreateTextBasedEvent(time, kind, charCode, "");
+			try
+			{
+				InsertEvent(@event);
+			}
+			catch (Exception ex)
+			{
+				@event.Delete();
+				throw;
+			}
+			/* トラックに挿入されているので、直近の同種イベントを探索できる。*/
+			/* lCharCode==MIDIEVENT_NOCHARCODEの場合、
+			/* 文字コードは直近の同種イベントに基づきエンコードされる。 */
+			try
+			{
+				@event.Text = text;
+			}
+			catch (Exception ex)
+			{
+				RemoveEvent(@event);
+				@event.Delete();
+				throw;
+			}
+		}
+
+		private void RemoveEvent(Event pEvent)
+		{
+			throw new NotImplementedException();
+		}
 
 		private void RemoveSingleEvent(Event prevCombinedEvent)
 		{
